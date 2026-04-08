@@ -62,17 +62,15 @@ Original Step 3 — async `PlayerStrategy` protocol with three batched methods, 
 
 ---
 
-## Step 5 — Bootstrap `IconquerMatch` sibling repo
+## Step 5 — Bootstrap `IconquerMatch` sibling repo ✅ DONE 2026-04-08
 
-NEW in Revision 4.
-
-- [ ] `git init ../IconquerMatch/`
-- [ ] `Package.swift` (Swift 6.2, OS 26 platforms, `IconquerCore` from local path, swift-docc-plugin)
-- [ ] Smoke test
-- [ ] Vendored `development-guidelines/`
-- [ ] Customised `00_MASTER_PLAN.md`
-- [ ] `.gitignore`
-- [ ] Initial commit
+- [x] `git init ../IconquerMatch/`
+- [x] `Package.swift` (Swift 6.2, OS 26 platforms, IconquerCore@v0.3.0 from local path, swift-docc-plugin)
+- [x] Smoke test (2/2 passing)
+- [x] Vendored `development-guidelines/` (clean copy from IconquerCore)
+- [x] Customised `00_MASTER_PLAN.md`
+- [x] `.gitignore` (incl. Emacs lock file patterns)
+- [x] Initial commit `IconquerMatch@17f84db`
 
 ---
 
