@@ -75,9 +75,10 @@ For each scenario in this order, write the failing parity test first, then the m
 ---
 
 ## Step 5 — REFACTOR
-- [ ] Eliminate any duplication between phase handlers
-- [ ] Confirm `Game` is `Sendable` and value-typed; no shared mutable state
-- [ ] No force unwraps, no `try!`, no force casts
+- [x] Eliminate any duplication between phase handlers (4.6.4 partial: claimFromPile helper extracted in bestCardsToTurnIn; full Step 5 audit still pending)
+- [x] Confirm `Game` is `Sendable` and value-typed; no shared mutable state
+- [x] No force unwraps, no `try!`, no force casts (audited 2026-04-08)
+- [x] No magic numbers in engine code (audited 2026-04-08: lifted Card.wildSuit static + Settings.cardSetSize)
 - [ ] All inputs validated at API boundaries with `GameError`
 
 ---
