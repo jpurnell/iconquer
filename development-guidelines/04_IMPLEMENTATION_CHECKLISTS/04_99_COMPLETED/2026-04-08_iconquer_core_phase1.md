@@ -91,14 +91,14 @@ For each scenario in this order, write the failing parity test first, then the m
 
 ---
 
-## Step 7 — VERIFY (Quality Gate)
-- [ ] `swift build` — zero warnings
-- [ ] `swift test` — all tests pass, ≥80% line coverage on `IconquerCore`
-- [ ] All parity fixtures pass
-- [ ] DocC builds clean
-- [ ] Tag `IconquerCore` v0.1.0
-- [ ] Write session summary in `iconquer/05_SUMMARIES/05_00_PHASE_SUMMARIES/`
-- [ ] Move this checklist to `04_99_COMPLETED/`
+## Step 7 — VERIFY (Quality Gate) ✅ DONE 2026-04-08
+- [x] `swift build` — zero warnings
+- [x] `swift test` — all tests pass (20/20), 88.32% line coverage on `IconquerCore` (gate ≥80%)
+- [x] All 12 parity fixtures pass
+- [x] DocC builds clean (via swift-docc-plugin 1.4.0)
+- [x] Tag `IconquerCore` v0.1.0 (tagged 2026-04-08 on the IconquerCore sibling repo)
+- [x] Write Phase 1 completion summary in `iconquer/development-guidelines/05_SUMMARIES/`
+- [x] Move this checklist to `04_99_COMPLETED/`
 
 ---
 
