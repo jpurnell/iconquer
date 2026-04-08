@@ -88,7 +88,7 @@ Per `MultiAgentPlayerBinding.md` §3. All six types + `MatchResult` landed in on
 
 ---
 
-## Step 5b — `IconquerAI` reshape: `RandomAgent` + `GreedyAgent` as `PlayerAgent`
+## Step 5b — `IconquerAI` reshape: `RandomAgent` + `GreedyAgent` as `PlayerAgent` ✅ DONE 2026-04-08
 
 Per Revision 4 §4.0.5. Not a rewrite — internal logic reused.
 
@@ -156,7 +156,7 @@ Returns scripted JSON-style responses parsed into `GameMove`. Used by IconquerMC
 
 ---
 
-## Step 10 — `IconquerAI@v0.1.0` round-trip + tag
+## Step 10 — `IconquerAI@v0.1.0` round-trip + tag ✅ DONE 2026-04-08
 
 - [ ] **RED:** `RandomAgent` vs `RandomAgent` plays a full game to victory via `MatchRunner` under fixed seed
 - [ ] **GREEN:** Driver loop in tests
