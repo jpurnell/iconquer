@@ -59,7 +59,7 @@ Additional scenarios will be added incrementally during Step 4 as each engine ph
 ## Step 4 — Engine port (RED → GREEN → REFACTOR, scenario by scenario)
 For each scenario in this order, write the failing parity test first, then the minimum engine code to pass:
 
-- [ ] **RED/GREEN:** `Game.start(seed:)` enters `pickCountries`, players present, no countries owned
+- [x] **RED/GREEN:** `Game.start(seed:)` enters `pickCountries`, players present, no countries owned (fixture 01 passing)
 - [ ] **RED/GREEN:** Country picking distributes territories, transitions to `initializeArmies`
 - [ ] **RED/GREEN:** Initial army placement, transitions to `play`
 - [ ] **RED/GREEN:** Reinforcement: floor(territories/3), min 3, plus continent bonuses
