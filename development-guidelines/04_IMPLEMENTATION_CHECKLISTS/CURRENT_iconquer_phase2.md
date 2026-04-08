@@ -165,7 +165,7 @@ Returns scripted JSON-style responses parsed into `GameMove`. Used by IconquerMC
 
 ---
 
-## Step 11 — Bootstrap `IconquerMCP` sibling repo
+## Step 11 — Bootstrap `IconquerMCP` sibling repo ✅ DONE 2026-04-08
 
 - [ ] `git init ../IconquerMCP/`
 - [ ] `Package.swift` declaring `IconquerCore` (local) + `IconquerMatch` (local) + `SwiftMCPServer` (remote)
@@ -175,7 +175,7 @@ Returns scripted JSON-style responses parsed into `GameMove`. Used by IconquerMC
 
 ---
 
-## Step 12 — `GameSession` actor
+## Step 12 — `GameSession` actor ✅ DONE 2026-04-08
 
 Wraps a single `Game` + `MatchRunner` instance, provides actor-isolated reads and submission.
 
@@ -184,7 +184,7 @@ Wraps a single `Game` + `MatchRunner` instance, provides actor-isolated reads an
 
 ---
 
-## Step 13 — `PlayerIdentityStore` actor
+## Step 13 — `PlayerIdentityStore` actor ✅ DONE 2026-04-08
 
 Maps MCP session tokens (stdio peer ID or HTTP API key) to `PlayerId`. Persists via SwiftMCPServer's keystore.
 
@@ -193,7 +193,7 @@ Maps MCP session tokens (stdio peer ID or HTTP API key) to `PlayerId`. Persists 
 
 ---
 
-## Step 14 — Read-only MCP tools
+## Step 14 — Read-only MCP tools ✅ DONE 2026-04-08
 
 For each tool: RED → GREEN with a `MockMCPClient` test.
 
@@ -207,7 +207,7 @@ For each tool: RED → GREEN with a `MockMCPClient` test.
 
 ---
 
-## Step 15 — Mutating MCP tools
+## Step 15 — Mutating MCP tools ✅ DONE 2026-04-08
 
 For each tool: RED → GREEN, asserts both response shape and resulting `Game` state. Mutating tools include the state hash check from `MultiAgentPlayerBinding.md` §4.
 
@@ -216,7 +216,7 @@ For each tool: RED → GREEN, asserts both response shape and resulting `Game` s
 
 ---
 
-## Step 16 — `MCPAgent: PlayerAgent` adapter
+## Step 16 — `MCPAgent: PlayerAgent` adapter ✅ DONE 2026-04-08
 
 The bridge between MCP and `IconquerMatch`. When `MatchRunner` asks an `MCPAgent` for a move, the agent waits for the next valid `iconquer_submit_move` tool call from the bound MCP session, validates it, and returns the parsed `GameMove`.
 
@@ -225,7 +225,7 @@ The bridge between MCP and `IconquerMatch`. When `MatchRunner` asks an `MCPAgent
 
 ---
 
-## Step 17 — Out-of-turn validation + state-hash staleness
+## Step 17 — Out-of-turn validation + state-hash staleness ✅ DONE 2026-04-08
 
 - [ ] **RED:** Test `iconquer_submit_move` from the wrong session → JSON-RPC error
 - [ ] **RED:** Test stale `state_hash` → JSON-RPC error
@@ -233,7 +233,7 @@ The bridge between MCP and `IconquerMatch`. When `MatchRunner` asks an `MCPAgent
 
 ---
 
-## Step 18 — MCP resources
+## Step 18 — MCP resources ✅ DONE 2026-04-08
 
 - [ ] `iconquer://game/state`
 - [ ] `iconquer://game/map`
@@ -242,21 +242,21 @@ The bridge between MCP and `IconquerMatch`. When `MatchRunner` asks an `MCPAgent
 
 ---
 
-## Step 19 — `iconquer-mcp` executable wrapper
+## Step 19 — `iconquer-mcp` executable wrapper ✅ DONE 2026-04-08
 
 - [ ] **RED:** End-to-end test that wires `MCPServer.builder()` and runs a tool via `MockMCPClient`
 - [ ] **GREEN:** Implement
 
 ---
 
-## Step 20 — End-to-end MCP fixture (stdio)
+## Step 20 — End-to-end MCP fixture (stdio) ✅ DONE 2026-04-08
 
 - [ ] Scripted MCP session driving a full short game (mirrors Phase 1 fixture 12 but via MCP tool calls)
 - [ ] Snapshot locked into fixture file
 
 ---
 
-## Step 21 — HTTP transport smoke test → tag `IconquerMCP@v0.1.0`
+## Step 21 — HTTP transport smoke test → tag `IconquerMCP@v0.1.0` ✅ DONE 2026-04-08
 
 - [ ] **RED:** Boot server on a random port, generate API key, connect with it, call read-only tool, refuse wrong key
 - [ ] **GREEN:** Verify SwiftMCPServer wiring
