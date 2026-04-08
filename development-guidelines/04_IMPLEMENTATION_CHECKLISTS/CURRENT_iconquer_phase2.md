@@ -49,18 +49,16 @@ Original Step 3 — async `PlayerStrategy` protocol with three batched methods, 
 
 ---
 
-## Step 4 — `IconquerCore@v0.3.0`: GameSnapshot.hash() + Game.legalMoves
+## Step 4 — `IconquerCore@v0.3.0`: GameSnapshot.hash() + Game.legalMoves ✅ DONE 2026-04-08
 
-NEW step in Revision 4. Additive over v0.2.0 — all 23 existing tests must continue to pass.
-
-- [ ] **DESIGN:** `GameSnapshot.hash()` uses FNV-1a 64-bit over a sorted-keys JSON encoding. No new dependencies. Returns hex string.
-- [ ] **DESIGN:** `Game.legalMoves(for:)` enumerates one canonical move per legal action — `placeArmies(c, count: unallocatedArmies)` per owned country (NOT the cross product), all valid attacks, all valid fortify pairs, etc.
-- [ ] **RED:** Focused test for `hash()` — encode/decode round-trip a known snapshot, verify hash is stable across runs and identical for structurally-equal snapshots
-- [ ] **RED:** Focused test for `legalMoves` against fixture 04's state — verify expected count and shape for each phase
-- [ ] **GREEN:** Implement both methods
-- [ ] **VERIFY:** All 25+ tests passing (23 existing + new)
-- [ ] **DOCUMENT:** DocC on both methods, DocC build clean
-- [ ] **TAG:** `IconquerCore@v0.3.0`
+- [x] **DESIGN:** `GameSnapshot.hash()` uses FNV-1a 64-bit over sorted-keys JSON. Zero new dependencies. Returns 16-char lowercase hex.
+- [x] **DESIGN:** `Game.legalMoves(for:)` returns one canonical move per legal action; `placeArmies` count is always `unallocatedArmies` (no cross product).
+- [x] **RED:** 5 tests in `SnapshotHashTests.swift` (determinism, hex format, Codable round-trip, mutation changes hash, structural equality)
+- [x] **RED:** 7 tests in `LegalMovesTests.swift` (pickCountries, out-of-turn, initializeArmies, play.assignArmies, play.attack, forced card turn-in, victory)
+- [x] **GREEN:** `Sources/IconquerCore/Model/SnapshotHash.swift` + `Game.legalMoves(for:)` in `Game.swift`
+- [x] **VERIFY:** 35/35 tests passing (23 v0.2.0 + 12 new), zero warnings
+- [x] **DOCUMENT:** DocC on both methods, DocC build clean
+- [x] **TAG:** `IconquerCore@v0.3.0` (commit `d687916`)
 
 ---
 
