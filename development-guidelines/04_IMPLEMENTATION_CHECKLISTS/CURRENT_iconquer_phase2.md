@@ -21,13 +21,15 @@ Adds the action enum we deferred from Phase 1 + a thin dispatcher. Purely additi
 
 ---
 
-## Step 2 — Bootstrap `IconquerAI` sibling repo
+## Step 2 — Bootstrap `IconquerAI` sibling repo ✅ DONE 2026-04-08
 
-- [ ] `git init` `../IconquerAI/`
-- [ ] `Package.swift` (Swift 6.2, OS 26 platforms, `IconquerCore` from local path)
-- [ ] Smoke test
-- [ ] Vendored `development-guidelines/`
-- [ ] Initial commit
+- [x] `git init` `../IconquerAI/`
+- [x] `Package.swift` (Swift 6.2, OS 26 platforms, `IconquerCore` from local path, swift-docc-plugin)
+- [x] Smoke test (2/2 passing — package version + IconquerCore reachability)
+- [x] Vendored `development-guidelines/` (clean copy from IconquerCore, no Phase 1/2 history bleed)
+- [x] `00_CORE_RULES/00_MASTER_PLAN.md` customised for IconquerAI
+- [x] `.gitignore` for `.build/`, `.swiftpm/`, `Package.resolved`, etc.
+- [x] Initial commit `IconquerAI@a6b0926`
 
 ---
 
