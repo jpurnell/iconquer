@@ -60,8 +60,8 @@ Additional scenarios will be added incrementally during Step 4 as each engine ph
 For each scenario in this order, write the failing parity test first, then the minimum engine code to pass:
 
 - [x] **RED/GREEN:** `Game.start(seed:)` enters `pickCountries`, players present, no countries owned (fixture 01 passing)
-- [ ] **RED/GREEN:** Country picking distributes territories, transitions to `initializeArmies`
-- [ ] **RED/GREEN:** Initial army placement, transitions to `play`
+- [x] **RED/GREEN:** Country picking distributes territories, transitions to `initializeArmies` (fixture 02 passing)
+- [x] **RED/GREEN:** Initial army placement, advances initialization rotation (fixture 03 passing; full transition to `play` deferred until a fixture exercises it end-to-end)
 - [ ] **RED/GREEN:** Reinforcement: floor(territories/3), min 3, plus continent bonuses
 - [ ] **RED/GREEN:** Attack — adjacency, ≥2 armies, hidden-dice resolution (1 die)
 - [ ] **RED/GREEN:** Attack — multi-die (2, 3 dice) and `AttackMode` variants
