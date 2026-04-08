@@ -75,19 +75,19 @@ For each scenario in this order, write the failing parity test first, then the m
 ---
 
 ## Step 5 — REFACTOR
-- [x] Eliminate any duplication between phase handlers (4.6.4 partial: claimFromPile helper extracted in bestCardsToTurnIn; full Step 5 audit still pending)
+- [x] Eliminate any duplication between phase handlers (claimFromPile helper extracted in bestCardsToTurnIn; rest of Game.swift uses targeted single-purpose methods)
 - [x] Confirm `Game` is `Sendable` and value-typed; no shared mutable state
 - [x] No force unwraps, no `try!`, no force casts (audited 2026-04-08)
 - [x] No magic numbers in engine code (audited 2026-04-08: lifted Card.wildSuit static + Settings.cardSetSize)
-- [ ] All inputs validated at API boundaries with `GameError`
+- [x] All inputs validated at API boundaries — early-return on bad input (mirrors TS oracle's silent no-op semantics; documented design choice, NOT throws). `GameError` is reserved for `Game.start` setup errors and `MapLoader` decode failures, where caller can't recover by retrying.
 
 ---
 
 ## Step 6 — DOCUMENT
-- [ ] DocC comments on every public type and method
-- [ ] DocC article: "Playing a full game in code"
-- [ ] DocC article: "Mapping iConquer rules to IconquerCore" (cross-references RULES.md)
-- [ ] `swift package generate-documentation` builds with zero warnings
+- [x] DocC comments on every public type and method
+- [x] DocC article: "Playing a full game in code" (PlayingAFullGame.md)
+- [x] DocC article: "Mapping iConquer rules to IconquerCore" (RulesMapping.md) — covers fortify-adjacent quirk, capture sentinel, tired-armies sentinel, count<9 quirk
+- [x] `swift package generate-documentation` builds with zero warnings (via swift-docc-plugin 1.4.0)
 
 ---
 
