@@ -287,6 +287,96 @@ const SCENARIOS: Scenario[] = [
             return engine.getSnapshot();
         },
     },
+    {
+        name: "06_attack_once",
+        seed: 42,
+        description:
+            "Same duel-map setup as fixture 05, but a single AttackOnce exchange instead of fighting until resolution. Verifies the .once branch: one dice exchange, no escalation, no capture (with this seed and these stacks).",
+        run() {
+            const duelMap: MapDefinition = {
+                id: "test.duel",
+                name: "Duel",
+                background: "",
+                baseWidth: 100,
+                baseHeight: 100,
+                countries: {
+                    Atlantis: { id: "Atlantis", x: 0, y: 0, neighbors: ["Pacifica"] },
+                    Pacifica: { id: "Pacifica", x: 0, y: 0, neighbors: ["Atlantis"] },
+                },
+                continents: {
+                    Ocean: { id: "Ocean", armies: 0, countries: ["Atlantis", "Pacifica"] },
+                },
+            };
+            const engine = new GameEngine({
+                map: duelMap,
+                players: [
+                    { id: "P1", name: "Player 1", color: "#e53935", isComputer: false },
+                    { id: "P2", name: "Player 2", color: "#1e88e5", isComputer: false },
+                ],
+                plugins: {},
+                settings: { assignCountries: false },
+                seed: 42,
+            });
+            engine.startGame();
+            engine.pickCountry("P1", "Atlantis");
+            engine.pickCountry("P2", "Pacifica");
+            for (let i = 0; i < 100; i += 1) {
+                const snap = engine.getSnapshot();
+                if (snap.phase !== "initializeArmies") break;
+                const pid = snap.currentPlayerId;
+                const player = snap.players[pid];
+                engine.placeArmies(pid, player.countries[0], player.unallocatedArmies);
+            }
+            engine.placeArmies("P1", "Atlantis", 3);
+            engine.attack("Atlantis", "Pacifica", AttackMode.AttackOnce);
+            return engine.getSnapshot();
+        },
+    },
+    {
+        name: "07_attack_until_losses_exceed",
+        seed: 42,
+        description:
+            "Same duel-map setup as fixture 05, but using AttackUntilLossesExceed mode with the default lossesExceedValue=5. Verifies the loop bound: attack repeats until cumulative attacker losses cross the threshold (or the fight ends).",
+        run() {
+            const duelMap: MapDefinition = {
+                id: "test.duel",
+                name: "Duel",
+                background: "",
+                baseWidth: 100,
+                baseHeight: 100,
+                countries: {
+                    Atlantis: { id: "Atlantis", x: 0, y: 0, neighbors: ["Pacifica"] },
+                    Pacifica: { id: "Pacifica", x: 0, y: 0, neighbors: ["Atlantis"] },
+                },
+                continents: {
+                    Ocean: { id: "Ocean", armies: 0, countries: ["Atlantis", "Pacifica"] },
+                },
+            };
+            const engine = new GameEngine({
+                map: duelMap,
+                players: [
+                    { id: "P1", name: "Player 1", color: "#e53935", isComputer: false },
+                    { id: "P2", name: "Player 2", color: "#1e88e5", isComputer: false },
+                ],
+                plugins: {},
+                settings: { assignCountries: false },
+                seed: 42,
+            });
+            engine.startGame();
+            engine.pickCountry("P1", "Atlantis");
+            engine.pickCountry("P2", "Pacifica");
+            for (let i = 0; i < 100; i += 1) {
+                const snap = engine.getSnapshot();
+                if (snap.phase !== "initializeArmies") break;
+                const pid = snap.currentPlayerId;
+                const player = snap.players[pid];
+                engine.placeArmies(pid, player.countries[0], player.unallocatedArmies);
+            }
+            engine.placeArmies("P1", "Atlantis", 3);
+            engine.attack("Atlantis", "Pacifica", AttackMode.AttackUntilLossesExceed);
+            return engine.getSnapshot();
+        },
+    },
 ];
 
 // ─── Main ───────────────────────────────────────────────────────────────────
