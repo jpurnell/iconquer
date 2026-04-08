@@ -76,14 +76,15 @@ Original Step 3 — async `PlayerStrategy` protocol with three batched methods, 
 
 ## Step 5a — `IconquerMatch` core types ✅ DONE 2026-04-08
 
-Per `MultiAgentPlayerBinding.md` §3. Each type RED → GREEN with focused tests.
+Per `MultiAgentPlayerBinding.md` §3. All six types + `MatchResult` landed in one focused pass with 15 new tests covering Codable round-trips, default values, value semantics, error case construction, a stub `PlayerAgent` conformance, and `SeatBinding` construction. 17/17 IconquerMatch tests passing. Commit: `IconquerMatch@72b0b0f`.
 
-- [ ] **`AgentIdentity`** (struct, Codable, Hashable)
-- [ ] **`SeatBinding`** (struct, holds `agent: any PlayerAgent`, `timeout`, `fallback`)
-- [ ] **`MatchSettings`** (struct, all tunables, no magic numbers)
-- [ ] **`AgentError`** + **`MatchError`** enums
-- [ ] **`MoveRecord`** (struct, Codable — turn, seat, agent identity, move, state-hash-before, latency, fallback flag, reasoning, reasoningTruncated)
-- [ ] **`PlayerAgent`** protocol (the only public protocol surface)
+- [x] **`AgentIdentity`** (struct, Codable, Hashable) — kind / displayName / version / promptFingerprint / metadata
+- [x] **`SeatBinding`** (struct, holds `agent: any PlayerAgent`, `timeout`, `fallback`) — `FallbackPolicy` enum: forfeitTurn / randomLegalMove(seed:) / abortMatch
+- [x] **`MatchSettings`** (struct, all tunables, no magic numbers) — 8 fields
+- [x] **`AgentError`** + **`MatchError`** enums (Sendable, Hashable)
+- [x] **`MoveRecord`** (struct, Codable — turn, seat, agent identity, move, state-hash-before, latency, fallback flag, reasoning, reasoningTruncated)
+- [x] **`PlayerAgent`** protocol (Sendable, async `requestMove(state:seat:deadline:)`, default-no-op `matchDidEnd(result:)`)
+- [x] **`MatchResult`** (added — final outcome yielded after the last move; struct, Codable)
 
 ---
 
