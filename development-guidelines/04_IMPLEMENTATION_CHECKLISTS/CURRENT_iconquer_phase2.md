@@ -1,7 +1,10 @@
-# CURRENT: iConquer Phase 2 — IconquerAI + IconquerMCP + IconquerCLI (v0.2.0)
+# CURRENT: iConquer Phase 2 — IconquerMatch + IconquerAI + IconquerMCP + IconquerCLI (v0.2.0)
 
-**Design proposal:** `02_IMPLEMENTATION_PLANS/UPCOMING/2026-04-08_iconquer_phase2_AI_CLI_SwiftUI.md`
-**Status:** APPROVED (Revision 3, 2026-04-08)
+**Design proposals:**
+- `02_IMPLEMENTATION_PLANS/UPCOMING/2026-04-08_iconquer_phase2_AI_CLI_SwiftUI.md` (master, Revision 4)
+- `02_IMPLEMENTATION_PLANS/UPCOMING/MultiAgentPlayerBinding.md` (the IconquerMatch design — APPROVED 2026-04-08)
+
+**Status:** APPROVED (Revision 4, 2026-04-08)
 **Predecessor:** Phase 1 — `IconquerCore@v0.1.0` shipped 2026-04-08
 **Workflow:** Design-First TDD (DESIGN → RED → GREEN → REFACTOR → DOCUMENT → VERIFY)
 
@@ -9,15 +12,15 @@
 
 ## Step 1 — `IconquerCore@v0.2.0`: GameMove + Game.apply ✅ DONE 2026-04-08
 
-Adds the action enum we deferred from Phase 1 + a thin dispatcher. Purely additive — all 20 existing parity fixtures must continue to pass unchanged.
+Adds the action enum we deferred from Phase 1 + a thin dispatcher. Purely additive — all 20 existing parity fixtures continue to pass unchanged.
 
 - [x] **DESIGN:** Confirmed `GameMove` case set — one case per public mutating method, with player IDs elided in favor of `currentPlayerId`
 - [x] **RED:** 3 focused tests in `GameMoveTests.swift`: apply parity for fixtures 03 + 05, plus Codable round-trip
 - [x] **GREEN:** `Sources/IconquerCore/Rules/GameMove.swift` + `Game.apply(_:)` dispatcher
-- [x] **VERIFY:** 23/23 tests passing (20 Phase 1 fixtures + 3 new GameMove tests), zero warnings
+- [x] **VERIFY:** 23/23 tests passing, zero warnings
 - [x] **DOCUMENT:** DocC on `GameMove` and `Game.apply(_:)`, DocC build still clean
 - [x] **TAG:** `IconquerCore@v0.2.0` (tagged 2026-04-08)
-- [x] **BONUS:** Fixed a Phase 1 latent bug in `pickCountry`'s rotation (was using `nextAlivePlayer` which skips empty-country players, getting stuck on player 0 during pickCountries phase). New `rotateToNextPlayer` mirrors the TS reference's `selectNextAlivePlayer`. Surfaced by the new GameMove tests; fixed in the same commit.
+- [x] **BONUS:** Fixed a Phase 1 latent bug in `pickCountry`'s rotation. New `rotateToNextPlayer` mirrors the TS reference's `selectNextAlivePlayer`.
 
 ---
 
@@ -26,69 +29,178 @@ Adds the action enum we deferred from Phase 1 + a thin dispatcher. Purely additi
 - [x] `git init` `../IconquerAI/`
 - [x] `Package.swift` (Swift 6.2, OS 26 platforms, `IconquerCore` from local path, swift-docc-plugin)
 - [x] Smoke test (2/2 passing — package version + IconquerCore reachability)
-- [x] Vendored `development-guidelines/` (clean copy from IconquerCore, no Phase 1/2 history bleed)
+- [x] Vendored `development-guidelines/` (clean copy from IconquerCore)
 - [x] `00_CORE_RULES/00_MASTER_PLAN.md` customised for IconquerAI
 - [x] `.gitignore` for `.build/`, `.swiftpm/`, `Package.resolved`, etc.
 - [x] Initial commit `IconquerAI@a6b0926`
 
 ---
 
-## Step 3 — `PlayerStrategy` protocol + `RandomStrategy` ✅ DONE 2026-04-08
+## Step 3 — `PlayerStrategy` protocol + `RandomStrategy` ⚠️ SHIPPED but RESHAPED in Step 5b
 
-- [x] **DESIGN:** async protocol with three methods returning `[GameMove]`; `RandomStrategy` is an `actor` holding its own `SeededRNG` so randomness advances across calls while staying `Sendable`
-- [x] **RED:** 5 tests in `RandomStrategyTests.swift` covering pickCountries, initializeArmies, full Play turn, determinism, and seed sensitivity
+Original Step 3 — async `PlayerStrategy` protocol with three batched methods, plus `RandomStrategy` actor — was completed and merged at `IconquerAI@e461f7d` (5/5 tests passing). However, the **MultiAgentPlayerBinding proposal** approved on 2026-04-08 supersedes `PlayerStrategy` with `PlayerAgent` (single-move-per-call, deadlined, audit-logged). This work is **reshaped**, not reverted — the internal logic (random valid move selection, sorted-for-determinism enumeration, local-Game-copy turn planning) is reusable. See Step 5b below.
+
+- [x] **DESIGN:** async protocol with three methods returning `[GameMove]`
+- [x] **RED:** 5 tests in `RandomStrategyTests.swift`
 - [x] **GREEN:** `PlayerStrategy.swift` + `RandomStrategy.swift`
 - [x] Deterministic under fixed seed (verified)
 - [x] IconquerAI commit `e461f7d`
+- [ ] **SUPERSEDED:** `PlayerStrategy.swift` will be deleted in Step 5b; `RandomStrategy.swift` will be rewritten as `RandomAgent.swift` conforming to `PlayerAgent`. Tests rewritten.
 
 ---
 
-## Step 4 — `GreedyStrategy`
+## Step 4 — `IconquerCore@v0.3.0`: GameSnapshot.hash() + Game.legalMoves
 
-- [ ] **RED:** Test that `GreedyStrategy` picks the strongest border country for income placement
+NEW step in Revision 4. Additive over v0.2.0 — all 23 existing tests must continue to pass.
+
+- [ ] **DESIGN:** `GameSnapshot.hash()` uses FNV-1a 64-bit over a sorted-keys JSON encoding. No new dependencies. Returns hex string.
+- [ ] **DESIGN:** `Game.legalMoves(for:)` enumerates one canonical move per legal action — `placeArmies(c, count: unallocatedArmies)` per owned country (NOT the cross product), all valid attacks, all valid fortify pairs, etc.
+- [ ] **RED:** Focused test for `hash()` — encode/decode round-trip a known snapshot, verify hash is stable across runs and identical for structurally-equal snapshots
+- [ ] **RED:** Focused test for `legalMoves` against fixture 04's state — verify expected count and shape for each phase
+- [ ] **GREEN:** Implement both methods
+- [ ] **VERIFY:** All 25+ tests passing (23 existing + new)
+- [ ] **DOCUMENT:** DocC on both methods, DocC build clean
+- [ ] **TAG:** `IconquerCore@v0.3.0`
+
+---
+
+## Step 5 — Bootstrap `IconquerMatch` sibling repo
+
+NEW in Revision 4.
+
+- [ ] `git init ../IconquerMatch/`
+- [ ] `Package.swift` (Swift 6.2, OS 26 platforms, `IconquerCore` from local path, swift-docc-plugin)
+- [ ] Smoke test
+- [ ] Vendored `development-guidelines/`
+- [ ] Customised `00_MASTER_PLAN.md`
+- [ ] `.gitignore`
+- [ ] Initial commit
+
+---
+
+## Step 5a — `IconquerMatch` core types
+
+Per `MultiAgentPlayerBinding.md` §3. Each type RED → GREEN with focused tests.
+
+- [ ] **`AgentIdentity`** (struct, Codable, Hashable)
+- [ ] **`SeatBinding`** (struct, holds `agent: any PlayerAgent`, `timeout`, `fallback`)
+- [ ] **`MatchSettings`** (struct, all tunables, no magic numbers)
+- [ ] **`AgentError`** + **`MatchError`** enums
+- [ ] **`MoveRecord`** (struct, Codable — turn, seat, agent identity, move, state-hash-before, latency, fallback flag, reasoning, reasoningTruncated)
+- [ ] **`PlayerAgent`** protocol (the only public protocol surface)
+
+---
+
+## Step 5b — `IconquerAI` reshape: `RandomAgent` + `GreedyAgent` as `PlayerAgent`
+
+Per Revision 4 §4.0.5. Not a rewrite — internal logic reused.
+
+- [ ] **Add `IconquerMatch` dependency** to `IconquerAI/Package.swift`
+- [ ] **Delete** `Sources/IconquerAI/PlayerStrategy.swift`
+- [ ] **Rewrite** `Sources/IconquerAI/RandomStrategy.swift` → `RandomAgent.swift`:
+  - `actor RandomAgent: PlayerAgent` with internal `SeededRNG` and a cached move queue
+  - `requestMove` plans one move at a time (or refills the queue once per turn)
+  - Same internal "random valid move" logic as Step 3
+- [ ] **Rewrite** `Tests/IconquerAITests/RandomStrategyTests.swift` → `RandomAgentTests.swift`:
+  - Test that `requestMove` returns one move per call
+  - Test that successive calls drain a turn correctly
+  - Test that hitting `.finishTurn` advances the seat
+  - Determinism under fixed seed
+- [ ] **NEW:** `GreedyAgent.swift` — strongest-border-stack heuristic
+- [ ] **NEW:** `GreedyAgentTests.swift`
+
+---
+
+## Step 6 — `IconquerMatch.MatchRunner` actor
+
+The turn pump. Drives `[SeatBinding]` to completion.
+
+- [ ] **RED:** Test runner with 2 deterministic stub agents on a 2-country game
+- [ ] **GREEN:** Implement `MatchRunner.run() -> AsyncThrowingStream<MoveRecord, Error>`
+- [ ] **RED:** Test runner with mixed agents (1 scripted + 1 stub MCP-style)
+- [ ] **GREEN:** Cross-agent dispatch
+- [ ] **RED:** Timeout test using `SlowAgent` past deadline
+- [ ] **GREEN:** Per-seat timeout enforcement + `FallbackPolicy.randomLegalMove`
+- [ ] **RED:** Illegal move test using `CheatingAgent`
+- [ ] **GREEN:** Move validation against `Game.legalMoves` + fallback or abort
+- [ ] **RED:** State-hash staleness test
+- [ ] **GREEN:** Reject stale-hash submissions
+- [ ] **RED:** Replay test — feed recorded `[MoveRecord]` log into a stub-agent runner
+- [ ] **GREEN:** Replay support
+
+---
+
+## Step 7 — `IconquerMatch.HumanAgent` reference impl
+
+Backed by an `AsyncStream<GameMove>`. Tests can drive a "human" without an app layer.
+
+- [ ] **RED:** Test feeds moves into the stream, asserts each is returned by `requestMove`
 - [ ] **GREEN:** Implement
-- [ ] Deterministic under fixed seed
+- [ ] DocC
 
 ---
 
-## Step 5 — Round-trip integration test → tag `IconquerAI@v0.1.0`
+## Step 8 — `IconquerMatch.MockLLMAgent` test helper
 
-- [ ] **RED:** `RandomStrategy` vs `RandomStrategy` plays a full game to victory under fixed seed
+Returns scripted JSON-style responses parsed into `GameMove`. Used by IconquerMCP tests too.
+
+- [ ] **RED:** Test that scripted responses produce the expected moves
+- [ ] **GREEN:** Implement
+- [ ] Re-export from test target so downstream packages can use it
+
+---
+
+## Step 9 — IconquerMatch round-trip integration test → tag `IconquerMatch@v0.1.0`
+
+- [ ] **RED:** 4 scripted agents play a deterministic match; full `MoveRecord` log is byte-stable across runs with fixed seeds
+- [ ] **GREEN:** Driver loop + golden JSON fixture
+- [ ] DocC catalog with `MultiAgentMatchesGuide.md` article
+- [ ] Tag `IconquerMatch@v0.1.0`
+
+---
+
+## Step 10 — `IconquerAI@v0.1.0` round-trip + tag
+
+- [ ] **RED:** `RandomAgent` vs `RandomAgent` plays a full game to victory via `MatchRunner` under fixed seed
 - [ ] **GREEN:** Driver loop in tests
 - [ ] Snapshot the final state into a fixture
 - [ ] Tag `IconquerAI@v0.1.0`
 
 ---
 
-## Step 6 — Bootstrap `IconquerMCP` sibling repo
+## Step 11 — Bootstrap `IconquerMCP` sibling repo
 
-- [ ] `git init` `../IconquerMCP/`
-- [ ] `Package.swift` declaring `IconquerCore` (local) + `SwiftMCPServer` (remote)
+- [ ] `git init ../IconquerMCP/`
+- [ ] `Package.swift` declaring `IconquerCore` (local) + `IconquerMatch` (local) + `SwiftMCPServer` (remote)
 - [ ] Smoke test
 - [ ] Vendored `development-guidelines/`
 - [ ] Initial commit
 
 ---
 
-## Step 7 — `GameSession` actor
+## Step 12 — `GameSession` actor
+
+Wraps a single `Game` + `MatchRunner` instance, provides actor-isolated reads and submission.
 
 - [ ] **RED:** Test actor-isolated reads and mutations against a known `Game` state
 - [ ] **GREEN:** Implement
 
 ---
 
-## Step 8 — `PlayerIdentityStore` actor
+## Step 13 — `PlayerIdentityStore` actor
+
+Maps MCP session tokens (stdio peer ID or HTTP API key) to `PlayerId`. Persists via SwiftMCPServer's keystore.
 
 - [ ] **RED:** Test session-token → `PlayerId` mapping with hand-crafted token/player pairs
 - [ ] **GREEN:** Implement
 
 ---
 
-## Step 9 — Read-only MCP tools
+## Step 14 — Read-only MCP tools
 
 For each tool: RED → GREEN with a `MockMCPClient` test.
 
-- [ ] `get_game_state`
+- [ ] `iconquer_get_state` (returns snapshot + hash + legal moves for the caller)
 - [ ] `get_map`
 - [ ] `get_my_player`
 - [ ] `get_pending_input`
@@ -98,29 +210,33 @@ For each tool: RED → GREEN with a `MockMCPClient` test.
 
 ---
 
-## Step 10 — Mutating MCP tools
+## Step 15 — Mutating MCP tools
 
-For each tool: RED → GREEN, asserts both response shape and resulting `Game` state.
+For each tool: RED → GREEN, asserts both response shape and resulting `Game` state. Mutating tools include the state hash check from `MultiAgentPlayerBinding.md` §4.
 
-- [ ] `pick_country`
-- [ ] `place_armies`
-- [ ] `attack`
-- [ ] `finish_attack_phase`
-- [ ] `begin_fortify_from`
-- [ ] `finish_turn`
-- [ ] `turn_in_cards`
-- [ ] `resolve_card_turn_in`
+- [ ] `iconquer_submit_move` (the unified tool — takes `move`, `state_hash`, `seat_id`, `match_id`, `turn`, optional `reasoning`)
+- [ ] (If splitting) Per-action tools: `pick_country`, `place_armies`, `attack`, etc.
 
 ---
 
-## Step 11 — Out-of-turn validation
+## Step 16 — `MCPAgent: PlayerAgent` adapter
 
-- [ ] **RED:** Test that calling `place_armies` from the wrong player returns JSON-RPC error `-32000 "not your turn"`
-- [ ] **GREEN:** Implement turn-validation guard in the dispatcher
+The bridge between MCP and `IconquerMatch`. When `MatchRunner` asks an `MCPAgent` for a move, the agent waits for the next valid `iconquer_submit_move` tool call from the bound MCP session, validates it, and returns the parsed `GameMove`.
+
+- [ ] **RED:** Test using `MockMCPClient` simulating an LLM submitting moves
+- [ ] **GREEN:** Implement
 
 ---
 
-## Step 12 — MCP resources
+## Step 17 — Out-of-turn validation + state-hash staleness
+
+- [ ] **RED:** Test `iconquer_submit_move` from the wrong session → JSON-RPC error
+- [ ] **RED:** Test stale `state_hash` → JSON-RPC error
+- [ ] **GREEN:** Implement guards in the dispatcher
+
+---
+
+## Step 18 — MCP resources
 
 - [ ] `iconquer://game/state`
 - [ ] `iconquer://game/map`
@@ -129,21 +245,21 @@ For each tool: RED → GREEN, asserts both response shape and resulting `Game` s
 
 ---
 
-## Step 13 — `iconquer-mcp` executable wrapper
+## Step 19 — `iconquer-mcp` executable wrapper
 
 - [ ] **RED:** End-to-end test that wires `MCPServer.builder()` and runs a tool via `MockMCPClient`
-- [ ] **GREEN:** Implement the wrapper
+- [ ] **GREEN:** Implement
 
 ---
 
-## Step 14 — End-to-end MCP fixture (stdio)
+## Step 20 — End-to-end MCP fixture (stdio)
 
 - [ ] Scripted MCP session driving a full short game (mirrors Phase 1 fixture 12 but via MCP tool calls)
 - [ ] Snapshot locked into fixture file
 
 ---
 
-## Step 15 — HTTP transport smoke test → tag `IconquerMCP@v0.1.0`
+## Step 21 — HTTP transport smoke test → tag `IconquerMCP@v0.1.0`
 
 - [ ] **RED:** Boot server on a random port, generate API key, connect with it, call read-only tool, refuse wrong key
 - [ ] **GREEN:** Verify SwiftMCPServer wiring
@@ -151,25 +267,25 @@ For each tool: RED → GREEN, asserts both response shape and resulting `Game` s
 
 ---
 
-## Step 16 — Bootstrap `IconquerCLI` sibling repo
+## Step 22 — Bootstrap `IconquerCLI` sibling repo
 
-- [ ] `git init` `../IconquerCLI/`
-- [ ] `Package.swift` with `IconquerCore` + `IconquerAI` + `swift-argument-parser`
-- [ ] Homebrew provisions §5.7 (stable binary product name, `--version`, `Formula/iconquer-cli.rb` template, release-mode build verified)
+- [ ] `git init ../IconquerCLI/`
+- [ ] `Package.swift` with `IconquerCore` + `IconquerMatch` + `IconquerAI` + `IconquerMCP` + `swift-argument-parser`
+- [ ] Homebrew provisions (stable binary product name, `--version`, `Formula/iconquer-cli.rb` template)
 - [ ] Vendored `development-guidelines/`
 - [ ] Initial commit
 
 ---
 
-## Step 17 — `CLISettings` + `config` subcommand
+## Step 23 — `CLISettings` + `config` subcommand
 
 - [ ] **RED:** Test settings file round-trip + `config get/set/reset/path`
 - [ ] **GREEN:** Implement
-- [ ] XDG-compliant location (`~/.config/iconquer-cli/settings.json`)
+- [ ] XDG-compliant location
 
 ---
 
-## Step 18 — `Renderer` + `--width` flag
+## Step 24 — `Renderer` + `--width` flag
 
 - [ ] **RED:** Given a fixed `GameSnapshot`, the renderer produces a known stable string
 - [ ] **GREEN:** Implement width-parameterised ANSI renderer
@@ -178,14 +294,16 @@ For each tool: RED → GREEN, asserts both response shape and resulting `Game` s
 
 ---
 
-## Step 19 — Command grammar parser
+## Step 25 — Command grammar parser
 
 - [ ] **RED:** Every command grammar example parses correctly; garbage produces good errors
 - [ ] **GREEN:** Implement
 
 ---
 
-## Step 20 — `simulate` subcommand
+## Step 26 — `simulate` subcommand
+
+Drives a `MatchRunner` with `[SeatBinding]` of two scripted agents.
 
 - [ ] **RED:** `simulate --p1 random --p2 random --seed 42` produces a byte-stable transcript
 - [ ] **GREEN:** Implement
@@ -193,29 +311,30 @@ For each tool: RED → GREEN, asserts both response shape and resulting `Game` s
 
 ---
 
-## Step 21 — `play` subcommand
+## Step 27 — `play` subcommand
+
+Drives a `MatchRunner` with `[SeatBinding]` of `HumanAgent` + scripted agents.
 
 - [ ] **RED:** Scripted stdin via piped input drives a known game outcome
-- [ ] **GREEN:** Implement interactive REPL
+- [ ] **GREEN:** Implement interactive REPL backed by `HumanAgent`'s `AsyncStream`
 
 ---
 
-## Step 22 — `replay` subcommand
+## Step 28 — `replay` subcommand
 
-- [ ] **RED:** Reading a transcript file reproduces the simulated game state at each step
+- [ ] **RED:** Reading a transcript file (`[MoveRecord]`) reproduces the simulated game state at each step
 - [ ] **GREEN:** Implement
 
 ---
 
-## Step 23 — `tournament` subcommand
+## Step 29 — `tournament` subcommand
 
 - [ ] **RED:** `tournament --strategies random,greedy --rounds 100 --seed-base 42` produces a known win matrix
 - [ ] **GREEN:** Implement aggregation logic
-- [ ] §6.5 sanity gates checked during implementation; raise issue if violated
 
 ---
 
-## Step 24 — DocC + README + `--version` → tag `IconquerCLI@v0.1.0`
+## Step 30 — DocC + README + `--version` → tag `IconquerCLI@v0.1.0`
 
 - [ ] DocC catalog with `Playing the CLI` and `Tournament Mode` articles
 - [ ] README with quickstart
@@ -224,7 +343,7 @@ For each tool: RED → GREEN, asserts both response shape and resulting `Game` s
 
 ---
 
-## Step 25 — Phase 2 v0.2.0 completion summary
+## Step 31 — Phase 2 v0.2.0 completion summary
 
 - [ ] Write summary in `iconquer/development-guidelines/05_SUMMARIES/`
 - [ ] Move this checklist to `04_99_COMPLETED/`

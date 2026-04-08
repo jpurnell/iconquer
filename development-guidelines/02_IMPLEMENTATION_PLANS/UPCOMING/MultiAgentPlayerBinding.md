@@ -1,9 +1,9 @@
 # Design Proposal: Multi-Agent Player Binding (Humans + AIs in the Same Match)
 
-**Status:** DRAFT — awaiting approval
-**Author:** Claude (Opus 4.6)
-**Date:** 2026-04-07
-**Related:** Phase 2 AI modernization, Phase 3+ LLM tournament vision
+**Status:** APPROVED 2026-04-08 — Justin: *"I created it, and I think we should do it. With our MCP ambitions here, this is meant to enable multiple LLMs alongside humans at the same time."* Integrated into Phase 2 master proposal as Revision 4.
+**Author:** Justin (with Claude Opus 4.6)
+**Date:** 2026-04-07 (drafted), approved 2026-04-08
+**Related:** `2026-04-08_iconquer_phase2_AI_CLI_SwiftUI.md` (master Phase 2 proposal — Revision 4 integrates this), Phase 3+ LLM tournament vision
 
 ---
 
@@ -163,6 +163,8 @@ public struct MoveRecord: Sendable, Codable {
     public let stateHashBefore: String  // for replay verification
     public let latency: Duration
     public let fallbackUsed: Bool
+    public let reasoning: String?       // LLM rationale, inline for replay + analysis
+    public let reasoningTruncated: Bool // true if original exceeded maxReasoningLength
 }
 
 // MARK: - Settings (no hardcoded constants)
@@ -175,6 +177,7 @@ public struct MatchSettings: Sendable {
     public var maxConcurrentLLMRequests: Int  // tournament throughput cap
     public var recordStateHashes: Bool
     public var fallbackSeed: UInt64
+    public var maxReasoningLength: Int        // per-move inline reasoning cap
 }
 
 // MARK: - Errors
@@ -394,30 +397,29 @@ If either is missing, they land as a tiny separate PR against Core *before*
 
 ---
 
-## 10. Open Questions
+## 10. Resolved Decisions
 
-1. **Hidden information timing.** iconquer currently has full-information state.
-   Do we want `GameView` (per-seat filtered state) stubbed now, or deferred
-   until a hidden-info feature actually lands? *Recommendation: stub the type,
-   have it equal `GameState` for now, so the signature doesn't change later.*
+1. **Hidden information timing.** Stub `GameView` now as a typealias for
+   `GameState`; swap to a filtered projection when a hidden-info feature lands.
+   Signatures stay stable.
 
-2. **Human agent UX.** Should the `HumanAgent` conformance live in
-   `IconquerMatch` (as a reference implementation backed by an
-   `AsyncStream<Move>` input) or in the app layer? *Recommendation: reference
-   implementation in `IconquerMatch` so tests can exercise human-in-the-loop
-   without the app.*
+2. **Human agent UX.** `HumanAgent` reference implementation lives in
+   `IconquerMatch`, backed by an `AsyncStream<Move>` input, so tests can
+   exercise human-in-the-loop without the app layer.
 
-3. **MCP server ownership.** Does the MCP server live in `IconquerMatch` or in
-   a separate `IconquerMCP` target? *Recommendation: separate target, to keep
-   `IconquerMatch` dependency-free and testable offline.*
+3. **MCP server ownership.** Separate `IconquerMCP` target. Keeps
+   `IconquerMatch` dependency-free and offline-testable.
 
-4. **Concurrency cap.** `maxConcurrentLLMRequests` — is this per-match or
-   per-tournament? *Recommendation: per-match in v1; tournament-wide cap is a
-   Phase 3 concern and belongs in the tournament runner, not here.*
+4. **Concurrency cap.** `maxConcurrentLLMRequests` is per-match in v1.
+   Tournament-wide caps belong in the Phase 3 tournament runner.
 
-5. **Reasoning field retention.** LLM `reasoning` strings could become large
-   over a tournament. Store inline in `MoveRecord` or in a side log? *Defer
-   to Phase 3.*
+5. **Reasoning field retention — STORED INLINE.** LLM `reasoning` strings live
+   directly on `MoveRecord.reasoning: String?`. Rationale: a game log with
+   state + move + readable rationale is the single most valuable artifact for
+   Phase 3 strategy analysis and the tournament vision. Side logs fragment
+   that value. `MatchSettings.maxReasoningLength` bounds individual entries
+   (default captured in settings, not hardcoded); anything longer is truncated
+   with an explicit `reasoningTruncated: Bool` flag.
 
 ---
 
@@ -460,6 +462,19 @@ Plus standard DocC API docs on every public symbol.
 
 ## Approval
 
-- [ ] User reviewed
-- [ ] User approved → move to `UPCOMING/`
-- [ ] Checklist created in `04_IMPLEMENTATION_CHECKLISTS/`
+- [x] User reviewed
+- [x] User approved → moved to `UPCOMING/` 2026-04-08
+- [x] Integrated into Phase 2 master proposal (Revision 4)
+- [x] Phase 2 implementation checklist (`CURRENT_iconquer_phase2.md`) rewritten to incorporate `IconquerMatch` steps
+
+## Naming reconciliation with existing codebase
+
+This proposal was drafted before Phase 1 shipped and uses generic names. The integration uses our existing IconquerCore vocabulary:
+
+| This proposal | IconquerCore equivalent |
+| :--- | :--- |
+| `GameState` | `GameSnapshot` |
+| `Move` | `GameMove` (already in `IconquerCore@v0.2.0`) |
+| `SeatID` | `PlayerId` |
+
+The substance carries over unchanged; only the type names are remapped during implementation.

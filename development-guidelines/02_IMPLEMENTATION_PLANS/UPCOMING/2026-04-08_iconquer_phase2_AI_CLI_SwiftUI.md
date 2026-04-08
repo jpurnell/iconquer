@@ -1,4 +1,6 @@
-# Design Proposal: iConquer Phase 2 — IconquerAI, CLI, and SwiftUI shells
+# Design Proposal: iConquer Phase 2 — IconquerMatch, IconquerAI, IconquerMCP, CLI, and SwiftUI shells
+
+**Status:** REVISION 4 (2026-04-08) — integrates Justin's `MultiAgentPlayerBinding.md` proposal (see `UPCOMING/MultiAgentPlayerBinding.md`). New `IconquerMatch` sibling repo introduced as the seat→agent orchestration layer. `PlayerStrategy` from Step 3 is reshaped into `PlayerAgent` (single-move-per-call, async, deadlined, audit-logged). Random/Greedy stay in `IconquerAI` but conform to `PlayerAgent`. `IconquerCore` bumps to `v0.3.0` to add `GameSnapshot.hash()` + `Game.legalMoves(for:)`. The Step 3 work (PlayerStrategy + RandomStrategy) is **reshaped, not reverted** — internal logic is reusable, only the protocol surface and granularity change.
 
 **Status:** REVISION 3 (2026-04-08) — adopting `SwiftMCPServer` (Justin's own reusable Swift MCP framework at `github.com/jpurnell/SwiftMCPServer`) instead of hand-rolling JSON-RPC. PlayerStrategy reverts to `async` (Justin: "don't know why things need to be sync when they can be async"). Tournament confirmed in v0.1.0. Round-3 questions resolved.
 
@@ -44,48 +46,165 @@ AI-vs-AI tournament runs.
 - No save/load to disk in v0.2.0. (Phase 3 — straightforward via
   `GameSnapshot` Codable.)
 - No full-screen curses TUI. The CLI is line-based, not a TUI.
-- No Phase 2 changes to `IconquerCore`'s public API surface unless a
-  consumer reveals a real gap. v0.1.0 is the contract.
+- ~~No Phase 2 changes to `IconquerCore`'s public API surface unless a
+  consumer reveals a real gap. v0.1.0 is the contract.~~ **Updated in
+  Revision 4:** `IconquerCore` is bumped twice in Phase 2 — `v0.2.0`
+  added `GameMove` + `Game.apply(_:)` (Step 1, already shipped); `v0.3.0`
+  adds `GameSnapshot.hash()` + `Game.legalMoves(for:)` to support
+  `IconquerMatch`'s state-staleness detection and the MCP server's
+  legal-move enumeration. Both releases are purely additive.
 - No App Store / TestFlight distribution. Local builds only.
 
-## 3. Repo Layout
+## 3. Repo Layout (Revision 4)
 
-**Four** new sibling repos joining `IconquerCore` and `iconquer`:
+**Five** new sibling repos joining `IconquerCore` and `iconquer`:
 
 ```
 ~/Dropbox/Computer/Development/Swift/
 ├── iconquer/                       # this repo — TS reference + assets + dev docs
-├── IconquerCore/                   # v0.1.0 sibling — pure rules engine
-├── IconquerAI/                     # NEW — in-process AI strategies (Random, Greedy)
-├── IconquerMCP/                    # NEW — MCP server exposing the engine to LLMs
-├── IconquerCLI/                    # NEW — pure-Swift command-line app
-└── IconquerApp/                    # NEW — SwiftUI app (hand-rolled .xcodeproj)
+├── IconquerCore/                   # v0.2.0 (will be v0.3.0 after Step 1.5)
+├── IconquerMatch/                  # NEW (Revision 4) — seat→agent orchestration
+├── IconquerAI/                     # in-process scripted PlayerAgent conformances
+├── IconquerMCP/                    # MCP server exposing engine to LLMs
+├── IconquerCLI/                    # pure-Swift command-line app
+└── IconquerApp/                    # SwiftUI app (hand-rolled .xcodeproj)
 ```
 
-**Rationale for sibling repos** (per existing memory `feedback_repo_layout.md`):
-each artifact has its own git history, can be tagged independently, and
-the dependency graph is unidirectional:
+**Dependency graph (Revision 4):**
 
 ```
-                       IconquerCore
-                       ╱  │  │  ╲
-                      ╱   │  │   ╲
-              IconquerAI  │  │  IconquerMCP
-                      ╲   │  │   ╱
-                       ╲  │  │  ╱
-                       IconquerCLI ──> IconquerApp
-                                       (independent, also depends on Core+AI)
+                       IconquerCore (v0.3.0)
+                              ▲
+                              │  GameSnapshot, GameMove, GameSnapshot.hash(),
+                              │  Game.legalMoves(for:), Game.apply(_:)
+                              │
+                       IconquerMatch (v0.1.0)
+                              ▲
+                              │  PlayerAgent, MatchRunner, MoveRecord,
+                              │  SeatBinding, MatchSettings, HumanAgent,
+                              │  AgentIdentity, AgentError, MatchError
+                              │
+                ┌─────────────┼─────────────┐
+                │             │             │
+        IconquerAI       IconquerMCP        │
+        (Random,          (MCPAgent +       │
+         Greedy as        SwiftMCPServer    │
+         PlayerAgent)     tools)            │
+                └─────────────┼─────────────┘
+                              │
+                       IconquerCLI / IconquerApp
+                       (instantiates MatchRunner with
+                        a [SeatBinding] of any agent
+                        kinds — human, scripted, MCP)
 ```
 
-`IconquerMCP` depends only on `IconquerCore` — it does NOT depend on
-`IconquerAI`, because the MCP server doesn't run in-process strategies;
-it only exposes engine state and actions as MCP tools that any external
-LLM client can call. `IconquerCLI` depends on Core + AI + (optionally,
-later) MCP. `IconquerApp` depends on Core + AI for its in-process AI
-opponents and (optionally, later) connects to `IconquerMCP` for LLM
-opponents. No circular references; no build-system entanglement.
+**`IconquerMatch` is the new center of gravity** for actually running a
+game with multiple players. It owns the turn pump, the audit log, the
+per-seat timeouts, and the seat-to-agent binding. `IconquerCore` stays
+pure rules. `IconquerAI` and `IconquerMCP` become *agent providers* that
+plug into `IconquerMatch.PlayerAgent`. Consumers (CLI, App, future
+tournament server) all drive `MatchRunner` directly — they never touch
+strategies or MCP clients themselves.
+
+**Why a new module instead of folding into IconquerCore or IconquerAI:**
+- `IconquerCore` must stay pure, synchronous, `Sendable`-trivial. Player
+  binding is inherently async (network, LLM, user input) and needs actor
+  isolation.
+- Folding into `IconquerAI` would conflate "the strategies themselves"
+  with "the framework that runs them," and an MCP-driven LLM doesn't fit
+  the "scripted strategy" mental model.
+- `IconquerMatch` keeps both clean: Core has zero changes for orchestration,
+  AI has zero coupling to network/timeout concerns.
+
+~~`IconquerMCP` depends only on `IconquerCore`~~ **Updated in Revision 4:**
+`IconquerMCP` depends on `IconquerCore` + `IconquerMatch`. It exposes
+engine state and actions as MCP tools, AND ships an `MCPAgent: PlayerAgent`
+adapter so an external LLM client connecting via MCP shows up as just
+another seat in `MatchRunner`. `IconquerCLI` and `IconquerApp` depend on
+`IconquerCore` + `IconquerMatch` + `IconquerAI` (for scripted agents) and
+optionally `IconquerMCP` (for LLM seats). No circular references.
 
 **Resolved:** `IconquerApp` is a sibling repo (per Justin 2026-04-08).
+
+## 4.0. `IconquerMatch` Design (NEW in Revision 4)
+
+The seat→agent orchestration layer. Owns the turn pump, the audit log,
+per-seat timeouts, and the `PlayerAgent` protocol that humans, scripted
+strategies, and MCP-driven LLMs all conform to.
+
+**Canonical detail:** `02_IMPLEMENTATION_PLANS/UPCOMING/MultiAgentPlayerBinding.md`
+(Justin's design proposal, approved 2026-04-08). The summary below is
+the integration sketch — the linked document is authoritative on the
+public API surface, the test categories, and the rationale.
+
+### 4.0.1 What `IconquerMatch` provides
+
+- **`PlayerAgent`** protocol — single `requestMove(state:seat:deadline:) async throws -> Move`. Implementations may be sync (scripted), interactive (human UI), or remote (LLM via MCP).
+- **`MatchRunner`** actor — drives the match to completion. Holds `[SeatBinding]`, asks each agent for moves, validates them, applies them via `Game.apply(_:)`, and yields each outcome through an `AsyncThrowingStream<MoveRecord>`.
+- **`SeatBinding`** — `(seat: PlayerId, agent: any PlayerAgent, timeout: Duration, fallback: FallbackPolicy)`. Per-seat timeouts and fallback rules live here, not in agents.
+- **`MoveRecord`** — audited log entry: turn, seat, agent identity, move, state-hash-before, latency, fallback flag, **inline LLM reasoning**. The reasoning field is the foundation of the Phase 3 LLM-tournament strategy-doc vision.
+- **`MatchSettings`** — per-match tunables (timeouts, concurrency caps, fallback seed, max reasoning length). No magic numbers.
+- **`AgentIdentity`** — `(kind: human|scripted|llm|remote, displayName, version, promptFingerprint, metadata)`. Travels with every move so replays survive model upgrades.
+- **`HumanAgent`** — reference implementation backed by an `AsyncStream<GameMove>`, so tests can exercise human-in-the-loop without an app layer.
+- **`MockLLMAgent`** — test helper that returns scripted responses, used by the test target (and re-exported for downstream test helpers).
+
+### 4.0.2 Naming reconciliation
+
+The `MultiAgentPlayerBinding.md` proposal predates Phase 1 and uses generic
+names. The integration uses our existing `IconquerCore` vocabulary:
+
+| MultiAgent proposal | IconquerCore type |
+| :--- | :--- |
+| `GameState` | `GameSnapshot` |
+| `Move` | `GameMove` (already in `IconquerCore@v0.2.0`) |
+| `SeatID` | `PlayerId` |
+
+The substance carries over unchanged.
+
+### 4.0.3 What `IconquerCore` needs to add (`v0.3.0`, additive)
+
+Per `MultiAgentPlayerBinding.md` §7:
+
+1. **`GameSnapshot.hash() -> String`** — stable, order-independent hash. Used for staleness detection in MCP (LLM submits a move with the hash it saw; runner rejects if mismatch). Implementation: FNV-1a 64-bit over a sorted-keys JSON encoding. No new dependencies.
+2. **`Game.legalMoves(for: PlayerId) -> [GameMove]`** — enumerates every move the player can legally make in the current phase. Used by the MCP server's `iconquer_get_state` tool so LLMs see the move set. **Canonical resolution for `placeArmies`:** return one canonical "place all unallocated armies on country X" move per owned country, NOT the full `(country × count)` cross product. Agents that want partial placements call `requestMove` multiple times.
+
+Both are additive. All 23 existing IconquerCore tests must continue to pass.
+
+### 4.0.4 Test categories (per MultiAgent proposal §8)
+
+Nine test categories, all hermetic (no live LLMs in CI):
+
+1. Golden path — homogeneous seats (4 scripted, byte-stable log)
+2. Golden path — mixed seats (2 scripted + 2 MockLLMAgent)
+3. Timeouts and fallback (`SlowAgent` past deadline → `randomLegalMove` fallback engages)
+4. Illegal move rejection (`CheatingAgent` returns illegal move → fallback or abort)
+5. State-hash staleness (MCP path — submit stale hash, runner rejects)
+6. Isolation (two MockLLMAgents don't see each other's payloads)
+7. Concurrency — simultaneous barrier phase (4 agents in parallel under barrier timeout)
+8. Determinism — fallback reproducibility (same `fallbackSeed` → identical fallback sequence)
+9. Replay (recorded `[MoveRecord]` → stub agents return logged moves → final state hash matches)
+
+These become `IconquerMatch@v0.1.0`'s parity-fixture analog.
+
+### 4.0.5 Step 3 reshape (not revert)
+
+The Step 3 work — `PlayerStrategy` protocol + `RandomStrategy` actor — gets
+**reshaped, not thrown away**. Internal logic (random valid move selection,
+sorted-for-determinism enumeration, local-Game-copy turn planning) is
+reusable as-is. Changes:
+
+- `PlayerStrategy.swift` is **deleted**. `PlayerAgent` (in `IconquerMatch`)
+  is the canonical interface.
+- `RandomStrategy.swift` becomes `RandomAgent.swift` (still in `IconquerAI`).
+  The actor pattern survives. The protocol surface flips from "batched
+  three methods returning `[GameMove]`" to "single `requestMove` returning
+  one `GameMove` at a time."
+- Internally `RandomAgent` may still plan a full turn at once and cache
+  the move queue, yielding one move per `requestMove` call until the
+  queue is empty, then re-plan for the next turn. This preserves the
+  Step-3 planning logic without having to re-derive it per call.
+- The 5 existing `RandomStrategyTests` get rewritten to test `RandomAgent`
+  against the new contract.
 
 ## 4. `IconquerAI` Design
 
@@ -93,12 +212,19 @@ A pure-Swift package, Swift 6.2, OS 26 platforms, Swift 6 strict
 concurrency. Mirrors `IconquerCore`'s setup exactly (and vendors the same
 `development-guidelines/`).
 
-### 4.1 Public API surface (REVISED — see §4.4 for the conceptual change)
+### 4.1 Public API surface (SUPERSEDED in Revision 4 — see §4.0)
+
+> **⚠️ Revision 4 note:** The `PlayerStrategy` protocol below is superseded
+> by `PlayerAgent` in `IconquerMatch` (see §4.0). The Step 3 code that
+> already shipped with this protocol gets reshaped per §4.0.5 — internal
+> logic is reusable, only the protocol surface and granularity change.
+> The block below is retained for historical context within this proposal;
+> do NOT implement it as written.
 
 ```swift
 import IconquerCore
 
-/// A computer (or remote) player. Given an immutable snapshot of the
+/// [SUPERSEDED] A computer (or remote) player. Given an immutable snapshot of the
 /// game, returns the sequence of moves to apply for one phase or turn.
 ///
 /// Async-by-default in-process AI strategy contract. Random and Greedy
@@ -615,16 +741,17 @@ dogfood `IconquerAI` from the CLI while the SwiftUI work is still
 green-field, and avoids cramming three large new artifacts into one
 release.
 
-## 7. Phase 2 Release Plan (REVISED)
+## 7. Phase 2 Release Plan (REVISION 4)
 
 | Tag | Artifact(s) | Acceptance |
 | :--- | :--- | :--- |
-| `IconquerCore@v0.2.0` | Adds `GameMove` enum + `Game.apply(_:)` dispatcher. Purely additive. All 20 existing parity fixtures continue to pass unchanged. | Unblocks IconquerAI; small enough to be one commit. |
-| `IconquerAI@v0.1.0` | `PlayerStrategy` (sync) + `RandomStrategy` + `GreedyStrategy`. Full unit + round-trip tests, DocC. **No LLM/network code.** | Depends on `IconquerCore@v0.2.0`. |
-| `IconquerMCP@v0.1.0` | MCP server built on `SwiftMCPServer` framework. Exposes the engine as MCP tools and resources. **Both stdio (default) and HTTP (opt-in) transports**, with HTTP designed-but-not-certified for v0.1.0 multiplayer use. API-key player identity for HTTP. Built-in `MockMCPClient` test harness drives every tool. | Depends on `IconquerCore@v0.2.0` and `SwiftMCPServer`. |
-| `IconquerCLI@v0.1.0` | `play` + `simulate` + `replay` subcommands, persistent settings, `--width`/`--ascii`/`--no-color` flags, `config` subcommand, `--version`, Homebrew-ready binary product, full test suite, DocC, README quickstart. | Depends on `IconquerAI@v0.1.0`. **= Phase 2 v0.2.0 ship (alongside `IconquerMCP@v0.1.0`).** |
-| `IconquerCLI@v0.2.0` | (Optional) `tournament` subcommand if it falls out cleanly from `simulate`. Otherwise punt to v0.3.0. | See §6.5 decision criteria. |
-| `IconquerApp@v0.1.0` | Single-window SwiftUI shell, depends on Core + AI. | **= Phase 2 v0.3.0 ship.** Strictly after CLI is proven. |
+| `IconquerCore@v0.2.0` ✅ | Adds `GameMove` enum + `Game.apply(_:)` dispatcher. **Already shipped 2026-04-08.** | Unblocks IconquerAI/Match. |
+| `IconquerCore@v0.3.0` (NEW R4) | Adds `GameSnapshot.hash() -> String` (FNV-1a 64-bit, no new deps) + `Game.legalMoves(for: PlayerId) -> [GameMove]` (canonical enumeration — `placeArmies` returns one canonical "all unallocated armies on country X" per owned country, not the cross product). Purely additive. All 23 v0.2.0 tests continue to pass. | Unblocks IconquerMatch and IconquerMCP. |
+| `IconquerMatch@v0.1.0` (NEW R4) | `PlayerAgent` protocol, `MatchRunner` actor, `MoveRecord`, `SeatBinding`, `MatchSettings`, `AgentIdentity`, `HumanAgent` reference impl, `MockLLMAgent` test helper. 9 test categories per `MultiAgentPlayerBinding.md` §8. DocC + `MultiAgentMatchesGuide.md` article. | Depends on `IconquerCore@v0.3.0`. |
+| `IconquerAI@v0.1.0` | `RandomAgent` + `GreedyAgent` as `PlayerAgent` conformances. Reshapes Step-3 work (deletes `PlayerStrategy.swift`, rewrites `RandomStrategy.swift` → `RandomAgent.swift`, rewrites the 5 existing tests against the new contract). Round-trip integration test: `RandomAgent` vs `RandomAgent` plays a full game to victory under fixed seed via `MatchRunner`. | Depends on `IconquerCore@v0.3.0` + `IconquerMatch@v0.1.0`. |
+| `IconquerMCP@v0.1.0` | SwiftMCPServer-based. Exposes MCP tools (`iconquer_get_state`, `iconquer_submit_move`, etc.) and ships an `MCPAgent: PlayerAgent` adapter so an MCP-connected LLM client shows up as just another seat in `MatchRunner`. Both stdio (default, certified) and HTTP (designed/scaffolded) transports. API-key player identity. `MockMCPClient` hermetic tests. | Depends on `IconquerCore@v0.3.0` + `IconquerMatch@v0.1.0` + `SwiftMCPServer`. |
+| `IconquerCLI@v0.1.0` | `play` + `simulate` + `replay` + `tournament` subcommands. Drives `MatchRunner` directly with a `[SeatBinding]` of mixed agents (HumanAgent + Random/Greedy + optional MCPAgent). Persistent settings, `--width`/`--ascii`/`--no-color` flags, Homebrew-ready binary, `--version`, full test suite, DocC, README quickstart. | Depends on `IconquerCore@v0.3.0` + `IconquerMatch@v0.1.0` + `IconquerAI@v0.1.0` + `IconquerMCP@v0.1.0`. **= Phase 2 v0.2.0 ship.** |
+| `IconquerApp@v0.1.0` | SwiftUI shell wrapping `MatchRunner` in `@Observable`. Depends on Core + Match + AI + (optional) MCP. | **= Phase 2 v0.3.0 ship.** Strictly after CLI is proven. |
 
 ## 8. Decisions & Open Questions
 
