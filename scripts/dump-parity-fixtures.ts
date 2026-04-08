@@ -237,6 +237,56 @@ const SCENARIOS: Scenario[] = [
             return engine.getSnapshot();
         },
     },
+    {
+        name: "05_attack_until_win_or_lose",
+        seed: 42,
+        description:
+            "Two-country isolated map (Atlantis ↔ Pacifica), one continent. Each player owns one country, drains their full 20 initial armies onto it, P1 spends their first 3-army income on Atlantis, then attacks Pacifica until win or lose. Exercises canAttack, attackOnce, the dice resolver, the capture sentinel, and post-capture army transfer.",
+        run() {
+            const duelMap: MapDefinition = {
+                id: "test.duel",
+                name: "Duel",
+                background: "",
+                baseWidth: 100,
+                baseHeight: 100,
+                countries: {
+                    Atlantis: { id: "Atlantis", x: 0, y: 0, neighbors: ["Pacifica"] },
+                    Pacifica: { id: "Pacifica", x: 0, y: 0, neighbors: ["Atlantis"] },
+                },
+                continents: {
+                    Ocean: { id: "Ocean", armies: 0, countries: ["Atlantis", "Pacifica"] },
+                },
+            };
+            const engine = new GameEngine({
+                map: duelMap,
+                players: [
+                    { id: "P1", name: "Player 1", color: "#e53935", isComputer: false },
+                    { id: "P2", name: "Player 2", color: "#1e88e5", isComputer: false },
+                ],
+                plugins: {},
+                settings: { assignCountries: false },
+                seed: 42,
+            });
+            engine.startGame();
+            engine.pickCountry("P1", "Atlantis");
+            engine.pickCountry("P2", "Pacifica");
+            // pickCountry of the final country auto-fires donePickingCountries
+            // and we are now in InitializeArmies. Drain both pools.
+            for (let i = 0; i < 100; i += 1) {
+                const snap = engine.getSnapshot();
+                if (snap.phase !== "initializeArmies") break;
+                const pid = snap.currentPlayerId;
+                const player = snap.players[pid];
+                const country = player.countries[0];
+                engine.placeArmies(pid, country, player.unallocatedArmies);
+            }
+            // Now P1 is in Play / AssignArmies with 3 income.
+            engine.placeArmies("P1", "Atlantis", 3);
+            // placeArmies fully drains, which auto-calls startAttackPhase.
+            engine.attack("Atlantis", "Pacifica", AttackMode.AttackUntilWinOrLose);
+            return engine.getSnapshot();
+        },
+    },
 ];
 
 // ─── Main ───────────────────────────────────────────────────────────────────

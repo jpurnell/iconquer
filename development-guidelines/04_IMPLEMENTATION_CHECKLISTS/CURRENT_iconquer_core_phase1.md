@@ -64,10 +64,8 @@ For each scenario in this order, write the failing parity test first, then the m
 - [x] **RED/GREEN:** Initial army placement, advances initialization rotation (fixture 03 passing)
 - [x] **RED/GREEN:** Initialization completes, transitions to `play`, first AssignArmies turn (fixture 04 passing)
 - [x] **RED/GREEN:** Reinforcement: floor(territories/3), min 3, plus continent bonuses (incomeForCountries, exercised by fixture 04 — continent bonus path is implemented but not yet covered by a fixture where a player owns a full continent)
-- [ ] **RED/GREEN:** Attack — adjacency, ≥2 armies, hidden-dice resolution (1 die)
-- [ ] **RED/GREEN:** Attack — multi-die (2, 3 dice) and `AttackMode` variants
-- [ ] **RED/GREEN:** Capture & advance armies, including `advanceArmies` setting
-- [ ] **RED/GREEN:** Player elimination + transfer
+- [x] **RED/GREEN:** Attack — adjacency, hidden-dice resolution, multi-die, capture sentinel, advance armies, player elimination, victory detection (fixture 05 passing — duel map, untilWinOrLose mode)
+- [ ] **RED/GREEN:** Attack — `attackOnce` mode and `untilLossesExceed` mode covered by their own fixtures (06, 07)
 - [ ] **RED/GREEN:** Fortify — connectivity through owned countries, once per turn
 - [ ] **RED/GREEN:** Cards — draw on conquest, turn-in values, `mustTurnInCards`
 - [ ] **RED/GREEN:** Victory detection
