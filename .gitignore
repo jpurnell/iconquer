@@ -10,3 +10,8 @@
 # Node / TypeScript reference deps
 node_modules/
 dist/
+
+# Emacs auto-save and lock files (any depth)
+**/.#*
+**/#*#
+**/*~
