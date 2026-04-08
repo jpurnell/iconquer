@@ -74,7 +74,7 @@ Original Step 3 — async `PlayerStrategy` protocol with three batched methods, 
 
 ---
 
-## Step 5a — `IconquerMatch` core types
+## Step 5a — `IconquerMatch` core types ✅ DONE 2026-04-08
 
 Per `MultiAgentPlayerBinding.md` §3. Each type RED → GREEN with focused tests.
 
