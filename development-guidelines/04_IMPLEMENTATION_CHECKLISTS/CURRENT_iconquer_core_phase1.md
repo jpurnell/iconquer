@@ -61,8 +61,9 @@ For each scenario in this order, write the failing parity test first, then the m
 
 - [x] **RED/GREEN:** `Game.start(seed:)` enters `pickCountries`, players present, no countries owned (fixture 01 passing)
 - [x] **RED/GREEN:** Country picking distributes territories, transitions to `initializeArmies` (fixture 02 passing)
-- [x] **RED/GREEN:** Initial army placement, advances initialization rotation (fixture 03 passing; full transition to `play` deferred until a fixture exercises it end-to-end)
-- [ ] **RED/GREEN:** Reinforcement: floor(territories/3), min 3, plus continent bonuses
+- [x] **RED/GREEN:** Initial army placement, advances initialization rotation (fixture 03 passing)
+- [x] **RED/GREEN:** Initialization completes, transitions to `play`, first AssignArmies turn (fixture 04 passing)
+- [x] **RED/GREEN:** Reinforcement: floor(territories/3), min 3, plus continent bonuses (incomeForCountries, exercised by fixture 04 — continent bonus path is implemented but not yet covered by a fixture where a player owns a full continent)
 - [ ] **RED/GREEN:** Attack — adjacency, ≥2 armies, hidden-dice resolution (1 die)
 - [ ] **RED/GREEN:** Attack — multi-die (2, 3 dice) and `AttackMode` variants
 - [ ] **RED/GREEN:** Capture & advance armies, including `advanceArmies` setting

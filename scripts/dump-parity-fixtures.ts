@@ -202,6 +202,41 @@ const SCENARIOS: Scenario[] = [
             return engine.getSnapshot();
         },
     },
+    {
+        name: "04_initialize_armies_complete",
+        seed: 42,
+        description:
+            "Drain every player's full 20 initial armies onto each player's first owned country. After the final drip the engine should advance from InitializeArmies into Play, set turnPhase=AssignArmies, and grant the first reinforcement income to player 0. Exercises the Play branch of beginTurnIfReady and incomeForCountries (the count<9?3:floor/3 quirk plus continent bonuses).",
+        run(map) {
+            const engine = new GameEngine({
+                map,
+                players: [
+                    { id: "P1", name: "Player 1", color: "#e53935", isComputer: false },
+                    { id: "P2", name: "Player 2", color: "#1e88e5", isComputer: false },
+                    { id: "P3", name: "Player 3", color: "#43a047", isComputer: false },
+                ],
+                plugins: {},
+                seed: 42,
+            });
+            engine.startGame();
+            // Drip-fed allocation: each placeArmies() call dumps the full
+            // current drip onto the player's first owned country, which
+            // triggers advanceInitializationTurn() → next player → next
+            // drip. Loop until we transition out of InitializeArmies.
+            //
+            // Hard cap iterations so a bug can't loop forever: with 3
+            // players × 20 armies × 5/drip we expect exactly 12 calls.
+            for (let i = 0; i < 100; i += 1) {
+                const snap = engine.getSnapshot();
+                if (snap.phase !== "initializeArmies") break;
+                const pid = snap.currentPlayerId;
+                const player = snap.players[pid];
+                const country = player.countries[0];
+                engine.placeArmies(pid, country, player.unallocatedArmies);
+            }
+            return engine.getSnapshot();
+        },
+    },
 ];
 
 // ─── Main ───────────────────────────────────────────────────────────────────
