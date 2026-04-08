@@ -1,0 +1,12 @@
+
+# Claude Code local settings (personal preferences, not shared) — match at any depth
+**/.claude/settings.local.json
+**/CLAUDE.local.md
+
+# OS noise — match at any depth
+**/.DS_Store
+.DS_Store
+
+# Node / TypeScript reference deps
+node_modules/
+dist/

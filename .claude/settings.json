@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(swift build:*)",
+      "Bash(swift test:*)",
+      "Bash(swift package:*)",
+      "Bash(quality-gate:*)",
+      "Bash(quality-gate)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Read(.env)",
+      "Read(.env.*)"
+    ]
+  }
+}
