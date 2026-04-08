@@ -342,6 +342,6 @@ Drives a `MatchRunner` with `[SeatBinding]` of `HumanAgent` + scripted agents.
 
 ## Step 31 — Phase 2 v0.2.0 completion summary
 
-- [ ] Write summary in `iconquer/development-guidelines/05_SUMMARIES/`
-- [ ] Move this checklist to `04_99_COMPLETED/`
+- [x] Write summary in `iconquer/development-guidelines/05_SUMMARIES/`
+- [x] Move this checklist to `04_99_COMPLETED/`
 - [ ] Begin separate Phase 2 v0.3.0 work (`IconquerApp` SwiftUI shell + certified networked-multiplayer)
