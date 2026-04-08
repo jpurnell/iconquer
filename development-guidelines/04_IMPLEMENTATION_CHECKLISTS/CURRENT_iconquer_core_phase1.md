@@ -68,7 +68,7 @@ For each scenario in this order, write the failing parity test first, then the m
 - [x] **RED/GREEN:** Attack — `.once` mode (fixture 06 passing)
 - [x] **RED/GREEN:** Attack — `.untilLossesExceed` mode (fixture 07 passing)
 - [x] **RED/GREEN:** Fortify — adjacent-only (per TS oracle, not RULES.md), with `tiredArmies = -1` sentinel arithmetic (fixture 08 passing)
-- [ ] **RED/GREEN:** Cards — draw on conquest, turn-in values, `mustTurnInCards`
+- [x] **RED/GREEN:** Cards — draw on conquest (fixture 09), turn-in values + owned-country bonus (fixture 10), forced turn-in trigger via pendingInput (fixture 11). bestCardsToTurnIn ported with focused unit tests.
 - [ ] **RED/GREEN:** Victory detection
 - [ ] **RED/GREEN:** Full short-game scenario passes end-to-end against TS fixture
 

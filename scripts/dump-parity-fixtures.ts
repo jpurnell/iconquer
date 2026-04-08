@@ -538,6 +538,65 @@ const SCENARIOS: Scenario[] = [
             return engine.getSnapshot();
         },
     },
+    {
+        name: "11_forced_turn_in_after_elimination",
+        seed: 42,
+        description:
+            "Three-country line with three players. P1 owns North, P2 owns Middle, P3 owns South. Inject 5 cards into P1's hand (over the cardHandLimit of 4). P1 attacks Middle untilWinOrLose, captures it, eliminates P2 (P2 had 0 cards so takeCards is a no-op). Because P3 is still alive (no victory) AND P1 has 5 > 4 cards, the engine sets mustTurnInCards/needsCardTurnIn → pendingInput. Snapshot at the moment the engine paused.",
+        run() {
+            const lineMap: MapDefinition = {
+                id: "test.line3",
+                name: "Line3",
+                background: "",
+                baseWidth: 100,
+                baseHeight: 100,
+                countries: {
+                    North: { id: "North", x: 0, y: 0, neighbors: ["Middle"] },
+                    Middle: { id: "Middle", x: 0, y: 0, neighbors: ["North", "South"] },
+                    South: { id: "South", x: 0, y: 0, neighbors: ["Middle"] },
+                },
+                continents: {
+                    Land: { id: "Land", armies: 0, countries: ["North", "Middle", "South"] },
+                },
+            };
+            const engine = new GameEngine({
+                map: lineMap,
+                players: [
+                    { id: "P1", name: "Player 1", color: "#e53935", isComputer: false },
+                    { id: "P2", name: "Player 2", color: "#1e88e5", isComputer: false },
+                    { id: "P3", name: "Player 3", color: "#43a047", isComputer: false },
+                ],
+                plugins: {},
+                settings: { assignCountries: false },
+                seed: 42,
+            });
+            engine.startGame();
+            engine.pickCountry("P1", "North");
+            engine.pickCountry("P2", "Middle");
+            engine.pickCountry("P3", "South");
+            for (let i = 0; i < 100; i += 1) {
+                const snap = engine.getSnapshot();
+                if (snap.phase !== "initializeArmies") break;
+                const pid = snap.currentPlayerId;
+                const player = snap.players[pid];
+                engine.placeArmies(pid, player.countries[0], player.unallocatedArmies);
+            }
+            // P1 in AssignArmies. Inject 5 test cards into P1's hand.
+            const enginePrivate = engine as unknown as {
+                players: Map<string, { cards: { name: string; countryId: string | null; suit: number }[] }>;
+            };
+            const p1 = enginePrivate.players.get("P1")!;
+            for (let i = 0; i < 5; i += 1) {
+                p1.cards.push({ name: `Test${i}`, countryId: null, suit: i % 3 });
+            }
+            // Place income (3) on North → auto-startAttackPhase.
+            engine.placeArmies("P1", "North", 3);
+            // Capture Middle → eliminates P2. P3 still alive → no victory.
+            // P1 has 5 cards > limit 4 → mustTurnInCards triggers.
+            engine.attack("North", "Middle", AttackMode.AttackUntilWinOrLose);
+            return engine.getSnapshot();
+        },
+    },
 ];
 
 // ─── Main ───────────────────────────────────────────────────────────────────
