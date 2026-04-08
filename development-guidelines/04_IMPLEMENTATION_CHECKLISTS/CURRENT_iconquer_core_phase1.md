@@ -67,7 +67,7 @@ For each scenario in this order, write the failing parity test first, then the m
 - [x] **RED/GREEN:** Attack — adjacency, hidden-dice resolution, multi-die, capture sentinel, advance armies, player elimination, victory detection (fixture 05 passing — duel map, untilWinOrLose mode)
 - [x] **RED/GREEN:** Attack — `.once` mode (fixture 06 passing)
 - [x] **RED/GREEN:** Attack — `.untilLossesExceed` mode (fixture 07 passing)
-- [ ] **RED/GREEN:** Fortify — connectivity through owned countries, once per turn
+- [x] **RED/GREEN:** Fortify — adjacent-only (per TS oracle, not RULES.md), with `tiredArmies = -1` sentinel arithmetic (fixture 08 passing)
 - [ ] **RED/GREEN:** Cards — draw on conquest, turn-in values, `mustTurnInCards`
 - [ ] **RED/GREEN:** Victory detection
 - [ ] **RED/GREEN:** Full short-game scenario passes end-to-end against TS fixture

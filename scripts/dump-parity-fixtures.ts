@@ -377,6 +377,62 @@ const SCENARIOS: Scenario[] = [
             return engine.getSnapshot();
         },
     },
+    {
+        name: "08_fortify_adjacent_with_tired_sentinel",
+        seed: 42,
+        description:
+            "Three-country linear map (North ↔ Middle ↔ South). P1 owns North + Middle (adjacent), P2 owns South. After init, P1 dumps everything on North, finishes the attack phase without attacking, beginFortifyFrom(North), then fortifies all movable armies onto Middle. Exercises finishAttackPhase, beginFortifyFrom (movable = armies - max(tired,0)), placeArmies in Fortify (tiredArmies += actual, starting from the -1 sentinel), and the post-fortify runtime clear.",
+        run() {
+            const lineMap: MapDefinition = {
+                id: "test.line",
+                name: "Line",
+                background: "",
+                baseWidth: 100,
+                baseHeight: 100,
+                countries: {
+                    North: { id: "North", x: 0, y: 0, neighbors: ["Middle"] },
+                    Middle: { id: "Middle", x: 0, y: 0, neighbors: ["North", "South"] },
+                    South: { id: "South", x: 0, y: 0, neighbors: ["Middle"] },
+                },
+                continents: {
+                    Land: { id: "Land", armies: 0, countries: ["North", "Middle", "South"] },
+                },
+            };
+            const engine = new GameEngine({
+                map: lineMap,
+                players: [
+                    { id: "P1", name: "Player 1", color: "#e53935", isComputer: false },
+                    { id: "P2", name: "Player 2", color: "#1e88e5", isComputer: false },
+                ],
+                plugins: {},
+                settings: { assignCountries: false },
+                seed: 42,
+            });
+            engine.startGame();
+            engine.pickCountry("P1", "North");
+            engine.pickCountry("P2", "South");
+            engine.pickCountry("P1", "Middle");
+            // donePickingCountries fires on the third pick.
+            // Drain init (drip-fed alternating). Each player dumps onto their first owned country.
+            for (let i = 0; i < 100; i += 1) {
+                const snap = engine.getSnapshot();
+                if (snap.phase !== "initializeArmies") break;
+                const pid = snap.currentPlayerId;
+                const player = snap.players[pid];
+                engine.placeArmies(pid, player.countries[0], player.unallocatedArmies);
+            }
+            // P1 in AssignArmies with income = 3 (count<9). Pile onto North.
+            engine.placeArmies("P1", "North", 3);
+            // placeArmies drained → startAttackPhase fired automatically.
+            engine.finishAttackPhase();
+            // Now in Fortify. Begin from North.
+            engine.beginFortifyFrom("North");
+            // All movable armies are now in P1.unallocatedArmies. Dump onto Middle.
+            const midSnap = engine.getSnapshot();
+            engine.placeArmies("P1", "Middle", midSnap.players.P1.unallocatedArmies);
+            return engine.getSnapshot();
+        },
+    },
 ];
 
 // ─── Main ───────────────────────────────────────────────────────────────────
