@@ -7,16 +7,17 @@
 
 ---
 
-## Step 1 — `IconquerCore@v0.2.0`: GameMove + Game.apply
+## Step 1 — `IconquerCore@v0.2.0`: GameMove + Game.apply ✅ DONE 2026-04-08
 
 Adds the action enum we deferred from Phase 1 + a thin dispatcher. Purely additive — all 20 existing parity fixtures must continue to pass unchanged.
 
-- [ ] **DESIGN:** Confirm `GameMove` case set (one case per public mutating method on `Game`)
-- [ ] **RED:** Focused test asserting `Game.apply(.placeArmies(...))` matches direct `Game.placeArmies(...)` for one existing fixture scenario
-- [ ] **GREEN:** `Sources/IconquerCore/Rules/GameMove.swift` + `Game.apply(_:)` dispatcher
-- [ ] **VERIFY:** All 20 existing parity fixtures still pass + new test passes
-- [ ] **DOCUMENT:** DocC on `GameMove` and `Game.apply(_:)`
-- [ ] **TAG:** `IconquerCore@v0.2.0`
+- [x] **DESIGN:** Confirmed `GameMove` case set — one case per public mutating method, with player IDs elided in favor of `currentPlayerId`
+- [x] **RED:** 3 focused tests in `GameMoveTests.swift`: apply parity for fixtures 03 + 05, plus Codable round-trip
+- [x] **GREEN:** `Sources/IconquerCore/Rules/GameMove.swift` + `Game.apply(_:)` dispatcher
+- [x] **VERIFY:** 23/23 tests passing (20 Phase 1 fixtures + 3 new GameMove tests), zero warnings
+- [x] **DOCUMENT:** DocC on `GameMove` and `Game.apply(_:)`, DocC build still clean
+- [x] **TAG:** `IconquerCore@v0.2.0` (tagged 2026-04-08)
+- [x] **BONUS:** Fixed a Phase 1 latent bug in `pickCountry`'s rotation (was using `nextAlivePlayer` which skips empty-country players, getting stuck on player 0 during pickCountries phase). New `rotateToNextPlayer` mirrors the TS reference's `selectNextAlivePlayer`. Surfaced by the new GameMove tests; fixed in the same commit.
 
 ---
 
