@@ -108,7 +108,7 @@ Per Revision 4 §4.0.5. Not a rewrite — internal logic reused.
 
 ---
 
-## Step 6 — `IconquerMatch.MatchRunner` actor
+## Step 6 — `IconquerMatch.MatchRunner` actor ✅ DONE 2026-04-08
 
 The turn pump. Drives `[SeatBinding]` to completion.
 
