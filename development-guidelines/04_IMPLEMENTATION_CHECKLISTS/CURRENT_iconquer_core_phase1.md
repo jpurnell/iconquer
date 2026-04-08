@@ -26,22 +26,33 @@
 
 ---
 
-## Step 2 — Read & document the TS oracle
-- [ ] Full read of `iconquer/src/core/game.ts` — capture phase machine, action shapes, edge cases
-- [ ] Full read of `iconquer/src/core/rng.ts` — document algorithm so we can mirror it bit-for-bit in Swift
-- [ ] Full read of `iconquer/src/core/defaults.ts`
-- [ ] Full read of `iconquer/src/types/game.ts`
-- [ ] Full read of `iconquer/src/plugins/maps/world.ts` and `iconquer/public/maps/iconquer-world/{Countries,Continents}.json`
-- [ ] Note any deviations between the TS reference and `RULES.md` for later reconciliation
-- [ ] Decide RNG strategy: mirror TS RNG, or replace both sides with SplitMix64 before fixture dump
+## Step 2 — Read & document the TS oracle ✅
+- [x] Full read of `iconquer/src/core/game.ts` — captured phase machine, action shapes, combat semantics, card lifecycle, fortify quirks
+- [x] Full read of `iconquer/src/core/rng.ts` — confirmed it's mulberry32, bit-reproducible in Swift `UInt32`
+- [x] Full read of `iconquer/src/core/defaults.ts` — settings table captured
+- [x] Full read of `iconquer/src/types/game.ts` — type catalog mapped to Swift
+- [x] Full read of `iconquer/src/plugins/maps/world.ts` — map loader contract captured
+- [x] Noted RULES.md deviations (fortify adjacent-only, defender.armies=-1 sentinel for capture, 20 hardcoded initial armies, tiredArmies=-1 fresh sentinel) — all to be mirrored as-is, treating TS as the authoritative oracle
+- [x] **RNG decision: mirror mulberry32 bit-for-bit.** No SplitMix64 swap needed.
+
+Notes file: `development-guidelines/02_IMPLEMENTATION_PLANS/UPCOMING/2026-04-06_TS_oracle_notes.md`
+Three non-blocking open questions for Justin captured at the bottom of that file.
 
 ---
 
-## Step 3 — Parity fixture infrastructure
-- [ ] Add `iconquer/scripts/dump-parity-fixtures.mjs` that drives `src/core/game.ts` through scripted scenarios under a fixed seed and writes JSON snapshots
-- [ ] Define the initial scenario set (start, country pick, init armies, win/lose battles, continent bonus, fortify, card turn-in, elimination, full short game)
-- [ ] Dump fixtures into `IconquerCore/Tests/IconquerCoreTests/ParityFixtures/`
-- [ ] Add an npm script `dump-fixtures` for repeatable regeneration
+## Step 3 — Parity fixture infrastructure ✅
+- [x] Added `iconquer/scripts/dump-parity-fixtures.ts` that drives `src/core/game.ts` through scripted scenarios under fixed seeds and writes JSON snapshots
+- [x] Loads the real world map from `public/maps/iconquer-world/{Countries,Continents}.json` via `fs` (no fetch dependency)
+- [x] Deterministic JSON: keys sorted recursively before serialization (arrays preserve order — they encode semantics)
+- [x] Initial 3 starter scenarios implemented:
+  - `01_start_no_assign` — startGame with assignCountries=false → PickCountries phase, no owners
+  - `02_start_random_assign` — startGame with assignCountries=true, seed=42 → InitializeArmies phase, P1 has 5/20 armies
+  - `03_initialize_armies_first_drip` — place P1's first 5 armies, snapshot the transition
+- [x] Determinism verified: re-ran twice, all 3 fixtures byte-identical
+- [x] `npm run dump-fixtures` script added
+- [x] Added `tsx` as devDep
+
+Additional scenarios will be added incrementally during Step 4 as each engine phase reaches RED. The infrastructure is in place; new scenarios are just new entries in the `SCENARIOS` array.
 
 ---
 
