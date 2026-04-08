@@ -481,6 +481,63 @@ const SCENARIOS: Scenario[] = [
             return engine.getSnapshot();
         },
     },
+    {
+        name: "10_card_turn_in_set_value_bump",
+        seed: 42,
+        description:
+            "Two-country duel map. Inject three cards directly into P1's hand (one referencing Atlantis which P1 owns — for the +2 bonus — one referencing Pacifica which P2 owns, one wild). Call turnInCards. Verifies: currentCardSetValue starts at 5, P1.unallocatedArmies += 5, currentCardSetValue → 6, Atlantis.armies += 2 (owned-country bonus), Pacifica.armies unchanged (not owned), cards moved from P1.hand to discardPile.",
+        run() {
+            const duelMap: MapDefinition = {
+                id: "test.duel",
+                name: "Duel",
+                background: "",
+                baseWidth: 100,
+                baseHeight: 100,
+                countries: {
+                    Atlantis: { id: "Atlantis", x: 0, y: 0, neighbors: ["Pacifica"] },
+                    Pacifica: { id: "Pacifica", x: 0, y: 0, neighbors: ["Atlantis"] },
+                },
+                continents: {
+                    Ocean: { id: "Ocean", armies: 0, countries: ["Atlantis", "Pacifica"] },
+                },
+            };
+            const engine = new GameEngine({
+                map: duelMap,
+                players: [
+                    { id: "P1", name: "Player 1", color: "#e53935", isComputer: false },
+                    { id: "P2", name: "Player 2", color: "#1e88e5", isComputer: false },
+                ],
+                plugins: {},
+                settings: { assignCountries: false },
+                seed: 42,
+            });
+            engine.startGame();
+            engine.pickCountry("P1", "Atlantis");
+            engine.pickCountry("P2", "Pacifica");
+            for (let i = 0; i < 100; i += 1) {
+                const snap = engine.getSnapshot();
+                if (snap.phase !== "initializeArmies") break;
+                const pid = snap.currentPlayerId;
+                const player = snap.players[pid];
+                engine.placeArmies(pid, player.countries[0], player.unallocatedArmies);
+            }
+            // P1 is now in Play / AssignArmies. Inject three test cards
+            // directly into P1's hand by reaching into the engine's
+            // private state (test-only — production callers don't do this).
+            const enginePrivate = engine as unknown as {
+                players: Map<string, { cards: { name: string; countryId: string | null; suit: number }[] }>;
+            };
+            const p1 = enginePrivate.players.get("P1")!;
+            const cardsToTurnIn = [
+                { name: "Atlantis", countryId: "Atlantis", suit: 0 },
+                { name: "Pacifica", countryId: "Pacifica", suit: 1 },
+                { name: "Wild 0", countryId: null, suit: -1 },
+            ];
+            p1.cards.push(...cardsToTurnIn);
+            engine.turnInCards("P1", cardsToTurnIn);
+            return engine.getSnapshot();
+        },
+    },
 ];
 
 // ─── Main ───────────────────────────────────────────────────────────────────
