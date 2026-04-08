@@ -33,11 +33,13 @@ Adds the action enum we deferred from Phase 1 + a thin dispatcher. Purely additi
 
 ---
 
-## Step 3 — `PlayerStrategy` protocol + `RandomStrategy`
+## Step 3 — `PlayerStrategy` protocol + `RandomStrategy` ✅ DONE 2026-04-08
 
-- [ ] **RED:** Test that `RandomStrategy(seed: 42)` produces a known `[GameMove]` for a given `Game` state
-- [ ] **GREEN:** Implement `PlayerStrategy` (async) + `RandomStrategy`
-- [ ] Deterministic under fixed seed
+- [x] **DESIGN:** async protocol with three methods returning `[GameMove]`; `RandomStrategy` is an `actor` holding its own `SeededRNG` so randomness advances across calls while staying `Sendable`
+- [x] **RED:** 5 tests in `RandomStrategyTests.swift` covering pickCountries, initializeArmies, full Play turn, determinism, and seed sensitivity
+- [x] **GREEN:** `PlayerStrategy.swift` + `RandomStrategy.swift`
+- [x] Deterministic under fixed seed (verified)
+- [x] IconquerAI commit `e461f7d`
 
 ---
 
