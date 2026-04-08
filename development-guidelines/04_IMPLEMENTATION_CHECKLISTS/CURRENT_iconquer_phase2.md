@@ -127,7 +127,7 @@ The turn pump. Drives `[SeatBinding]` to completion.
 
 ---
 
-## Step 7 — `IconquerMatch.HumanAgent` reference impl
+## Step 7 — `IconquerMatch.HumanAgent` reference impl ✅ DONE 2026-04-08
 
 Backed by an `AsyncStream<GameMove>`. Tests can drive a "human" without an app layer.
 
@@ -137,7 +137,7 @@ Backed by an `AsyncStream<GameMove>`. Tests can drive a "human" without an app l
 
 ---
 
-## Step 8 — `IconquerMatch.MockLLMAgent` test helper
+## Step 8 — `IconquerMatch.MockLLMAgent` test helper ✅ DONE 2026-04-08
 
 Returns scripted JSON-style responses parsed into `GameMove`. Used by IconquerMCP tests too.
 
@@ -147,7 +147,7 @@ Returns scripted JSON-style responses parsed into `GameMove`. Used by IconquerMC
 
 ---
 
-## Step 9 — IconquerMatch round-trip integration test → tag `IconquerMatch@v0.1.0`
+## Step 9 — IconquerMatch round-trip integration test → tag `IconquerMatch@v0.1.0` ✅ DONE 2026-04-08
 
 - [ ] **RED:** 4 scripted agents play a deterministic match; full `MoveRecord` log is byte-stable across runs with fixed seeds
 - [ ] **GREEN:** Driver loop + golden JSON fixture
