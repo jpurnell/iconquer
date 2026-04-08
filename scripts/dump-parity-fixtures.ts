@@ -433,6 +433,54 @@ const SCENARIOS: Scenario[] = [
             return engine.getSnapshot();
         },
     },
+    {
+        name: "09_card_draw_on_conquest",
+        seed: 42,
+        description:
+            "Three-country line map (North ↔ Middle ↔ South). P1 owns North, P2 owns Middle + South. After init, P1 piles 3 income on North and attacks Middle untilWinOrLose. With this seed P1 captures Middle. P2 still alive (owns South), so no victory. Then finishTurn() — P1 has hasWonThisTurn=true so the engine draws one card from the top of the draw pile and pushes it onto P1's hand. Snapshot at the end of P1's turn (engine has rotated to P2 and granted P2 the first reinforcement income).",
+        run() {
+            const lineMap: MapDefinition = {
+                id: "test.line",
+                name: "Line",
+                background: "",
+                baseWidth: 100,
+                baseHeight: 100,
+                countries: {
+                    North: { id: "North", x: 0, y: 0, neighbors: ["Middle"] },
+                    Middle: { id: "Middle", x: 0, y: 0, neighbors: ["North", "South"] },
+                    South: { id: "South", x: 0, y: 0, neighbors: ["Middle"] },
+                },
+                continents: {
+                    Land: { id: "Land", armies: 0, countries: ["North", "Middle", "South"] },
+                },
+            };
+            const engine = new GameEngine({
+                map: lineMap,
+                players: [
+                    { id: "P1", name: "Player 1", color: "#e53935", isComputer: false },
+                    { id: "P2", name: "Player 2", color: "#1e88e5", isComputer: false },
+                ],
+                plugins: {},
+                settings: { assignCountries: false },
+                seed: 42,
+            });
+            engine.startGame();
+            engine.pickCountry("P1", "North");
+            engine.pickCountry("P2", "Middle");
+            engine.pickCountry("P2", "South");
+            for (let i = 0; i < 100; i += 1) {
+                const snap = engine.getSnapshot();
+                if (snap.phase !== "initializeArmies") break;
+                const pid = snap.currentPlayerId;
+                const player = snap.players[pid];
+                engine.placeArmies(pid, player.countries[0], player.unallocatedArmies);
+            }
+            engine.placeArmies("P1", "North", 3);
+            engine.attack("North", "Middle", AttackMode.AttackUntilWinOrLose);
+            engine.finishTurn();
+            return engine.getSnapshot();
+        },
+    },
 ];
 
 // ─── Main ───────────────────────────────────────────────────────────────────
