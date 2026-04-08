@@ -597,6 +597,102 @@ const SCENARIOS: Scenario[] = [
             return engine.getSnapshot();
         },
     },
+    {
+        name: "12_full_short_game",
+        seed: 42,
+        description:
+            "Full game played end-to-end against the TS oracle: 4-country linear map (A-B-C-D), 2 players. P1 starts owning A, P2 owns B-C-D. P1 marches across the board capturing one country per turn, calling finishTurn between turns to draw cards, and eventually eliminates P2 for victory. Exercises pickCountries → initializeArmies → multiple Play turns → assignArmies (with reinforcement) → attack (capture) → finishAttackPhase → fortify (no-op) → finishTurn (card draw + rotation) → victory in one scripted scenario.",
+        run() {
+            const lineMap: MapDefinition = {
+                id: "test.line4",
+                name: "Line4",
+                background: "",
+                baseWidth: 100,
+                baseHeight: 100,
+                countries: {
+                    A: { id: "A", x: 0, y: 0, neighbors: ["B"] },
+                    B: { id: "B", x: 0, y: 0, neighbors: ["A", "C"] },
+                    C: { id: "C", x: 0, y: 0, neighbors: ["B", "D"] },
+                    D: { id: "D", x: 0, y: 0, neighbors: ["C"] },
+                },
+                continents: {
+                    Land: { id: "Land", armies: 0, countries: ["A", "B", "C", "D"] },
+                },
+            };
+            const engine = new GameEngine({
+                map: lineMap,
+                players: [
+                    { id: "P1", name: "Player 1", color: "#e53935", isComputer: false },
+                    { id: "P2", name: "Player 2", color: "#1e88e5", isComputer: false },
+                ],
+                plugins: {},
+                settings: { assignCountries: false },
+                seed: 42,
+            });
+            engine.startGame();
+            // Manual pick: P1 takes A, P2 takes B, C, D.
+            engine.pickCountry("P1", "A");
+            engine.pickCountry("P2", "B");
+            engine.pickCountry("P2", "C");
+            engine.pickCountry("P2", "D");
+            // Drain init.
+            for (let i = 0; i < 200; i += 1) {
+                const snap = engine.getSnapshot();
+                if (snap.phase !== "initializeArmies") break;
+                const pid = snap.currentPlayerId;
+                const player = snap.players[pid];
+                engine.placeArmies(pid, player.countries[0], player.unallocatedArmies);
+            }
+            // Drive Play turns until victory or 30 turns elapsed.
+            for (let turn = 0; turn < 30; turn += 1) {
+                const snap = engine.getSnapshot();
+                if (snap.phase === "victory") break;
+                const pid = snap.currentPlayerId;
+                const player = snap.players[pid];
+                if (pid === "P1") {
+                    // Identify a launching country that has at least one
+                    // enemy neighbour. Place all income on it, then attack.
+                    let attackFrom: string | null = null;
+                    let attackTo: string | null = null;
+                    for (const owned of player.countries) {
+                        const neighbors = lineMap.countries[owned].neighbors;
+                        for (const n of neighbors) {
+                            if (snap.countries[n].ownerId !== pid) {
+                                attackFrom = owned;
+                                attackTo = n;
+                                break;
+                            }
+                        }
+                        if (attackFrom) break;
+                    }
+                    if (attackFrom && player.unallocatedArmies > 0) {
+                        engine.placeArmies(pid, attackFrom, player.unallocatedArmies);
+                    } else if (player.unallocatedArmies > 0) {
+                        // Fallback: dump on countries[0]. Shouldn't happen
+                        // unless every owned country borders only owned ones.
+                        engine.placeArmies(pid, player.countries[0], player.unallocatedArmies);
+                    }
+                    if (attackFrom && attackTo) {
+                        engine.attack(attackFrom, attackTo, AttackMode.AttackUntilWinOrLose);
+                    }
+                    // If still in attack phase (i.e. not victory), end it.
+                    const after = engine.getSnapshot();
+                    if (after.phase === "victory") break;
+                    if (after.turnPhase === "attack") engine.finishAttackPhase();
+                    engine.finishTurn();
+                } else {
+                    // P2: just place income (if any) and skip the turn.
+                    if (player.unallocatedArmies > 0) {
+                        engine.placeArmies(pid, player.countries[0], player.unallocatedArmies);
+                    }
+                    const mid = engine.getSnapshot();
+                    if (mid.turnPhase === "attack") engine.finishAttackPhase();
+                    engine.finishTurn();
+                }
+            }
+            return engine.getSnapshot();
+        },
+    },
 ];
 
 // ─── Main ───────────────────────────────────────────────────────────────────
