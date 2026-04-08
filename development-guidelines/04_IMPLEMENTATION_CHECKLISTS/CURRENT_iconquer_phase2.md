@@ -266,35 +266,35 @@ The bridge between MCP and `IconquerMatch`. When `MatchRunner` asks an `MCPAgent
 
 ## Step 22 — Bootstrap `IconquerCLI` sibling repo
 
-- [ ] `git init ../IconquerCLI/`
-- [ ] `Package.swift` with `IconquerCore` + `IconquerMatch` + `IconquerAI` + `IconquerMCP` + `swift-argument-parser`
-- [ ] Homebrew provisions (stable binary product name, `--version`, `Formula/iconquer-cli.rb` template)
-- [ ] Vendored `development-guidelines/`
-- [ ] Initial commit
+- [x] `git init ../IconquerCLI/`
+- [x] `Package.swift` with `IconquerCore` + `IconquerMatch` + `IconquerAI` + `IconquerMCP` + `swift-argument-parser`
+- [x] Homebrew provisions (stable binary product name, `--version`, `Formula/iconquer-cli.rb` template)
+- [x] Vendored `development-guidelines/`
+- [x] Initial commit
 
 ---
 
 ## Step 23 — `CLISettings` + `config` subcommand
 
-- [ ] **RED:** Test settings file round-trip + `config get/set/reset/path`
-- [ ] **GREEN:** Implement
-- [ ] XDG-compliant location
+- [x] **RED:** Test settings file round-trip + `config get/set/reset/path`
+- [x] **GREEN:** Implement
+- [x] XDG-compliant location
 
 ---
 
 ## Step 24 — `Renderer` + `--width` flag
 
-- [ ] **RED:** Given a fixed `GameSnapshot`, the renderer produces a known stable string
-- [ ] **GREEN:** Implement width-parameterised ANSI renderer
-- [ ] Auto-detect via `TIOCGWINSZ` when `width == 0`
-- [ ] `--ascii` and `--no-color` opt-outs
+- [x] **RED:** Given a fixed `GameSnapshot`, the renderer produces a known stable string
+- [x] **GREEN:** Implement width-parameterised ANSI renderer
+- [x] Auto-detect via `TIOCGWINSZ` when `width == 0`
+- [x] `--ascii` and `--no-color` opt-outs
 
 ---
 
 ## Step 25 — Command grammar parser
 
-- [ ] **RED:** Every command grammar example parses correctly; garbage produces good errors
-- [ ] **GREEN:** Implement
+- [x] **RED:** Every command grammar example parses correctly; garbage produces good errors
+- [x] **GREEN:** Implement
 
 ---
 
@@ -302,9 +302,9 @@ The bridge between MCP and `IconquerMatch`. When `MatchRunner` asks an `MCPAgent
 
 Drives a `MatchRunner` with `[SeatBinding]` of two scripted agents.
 
-- [ ] **RED:** `simulate --p1 random --p2 random --seed 42` produces a byte-stable transcript
-- [ ] **GREEN:** Implement
-- [ ] Transcript fixture locked into tests
+- [x] **RED:** `simulate --p1 random --p2 random --seed 42` produces a byte-stable transcript
+- [x] **GREEN:** Implement
+- [x] Transcript fixture locked into tests
 
 ---
 
@@ -312,31 +312,31 @@ Drives a `MatchRunner` with `[SeatBinding]` of two scripted agents.
 
 Drives a `MatchRunner` with `[SeatBinding]` of `HumanAgent` + scripted agents.
 
-- [ ] **RED:** Scripted stdin via piped input drives a known game outcome
-- [ ] **GREEN:** Implement interactive REPL backed by `HumanAgent`'s `AsyncStream`
+- [x] **RED:** Scripted stdin via piped input drives a known game outcome
+- [x] **GREEN:** Implement interactive REPL backed by `HumanAgent`'s `AsyncStream`
 
 ---
 
 ## Step 28 — `replay` subcommand
 
-- [ ] **RED:** Reading a transcript file (`[MoveRecord]`) reproduces the simulated game state at each step
-- [ ] **GREEN:** Implement
+- [x] **RED:** Reading a transcript file (`[MoveRecord]`) reproduces the simulated game state at each step
+- [x] **GREEN:** Implement
 
 ---
 
 ## Step 29 — `tournament` subcommand
 
-- [ ] **RED:** `tournament --strategies random,greedy --rounds 100 --seed-base 42` produces a known win matrix
-- [ ] **GREEN:** Implement aggregation logic
+- [x] **RED:** `tournament --strategies random,greedy --rounds 100 --seed-base 42` produces a known win matrix
+- [x] **GREEN:** Implement aggregation logic
 
 ---
 
 ## Step 30 — DocC + README + `--version` → tag `IconquerCLI@v0.1.0`
 
-- [ ] DocC catalog with `Playing the CLI` and `Tournament Mode` articles
-- [ ] README with quickstart
-- [ ] `--version` prints versions of all linked packages
-- [ ] Tag `IconquerCLI@v0.1.0` = **Phase 2 v0.2.0 ship**
+- [x] DocC catalog with `Playing the CLI` and `Tournament Mode` articles
+- [x] README with quickstart
+- [x] `--version` prints versions of all linked packages
+- [x] Tag `IconquerCLI@v0.1.0` = **Phase 2 v0.2.0 ship**
 
 ---
 
