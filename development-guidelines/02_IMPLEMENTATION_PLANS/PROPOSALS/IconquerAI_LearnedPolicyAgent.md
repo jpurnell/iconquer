@@ -12,13 +12,15 @@
 
 ## 2. Proposed Architecture
 
-The system has three components: feature extraction, a trainable linear model, and the agent that uses the trained model for decision-making.
+The system has three components: feature extraction, a trainable neural network (via MLX-Swift), and the agent that uses the trained model for decision-making.
+
+**ML Framework:** Apple's [MLX-Swift](https://github.com/ml-explore/mlx-swift) — a GPU-accelerated array framework for Apple Silicon. MLX provides tensor operations, automatic differentiation, and optimizers (Adam, SGD) natively in Swift. No Python bridge, no CoreML dependency. Runs on macOS (roseclub.org is Apple Silicon).
 
 ### New Files
 
 ```
-Sources/IconquerAI/Learned/FeatureExtractor.swift        -- GameSnapshot -> [Double]
-Sources/IconquerAI/Learned/LinearModel.swift              -- weights + forward pass + training
+Sources/IconquerAI/Learned/FeatureExtractor.swift        -- GameSnapshot -> MLXArray
+Sources/IconquerAI/Learned/PositionNetwork.swift          -- MLX MLP (12 -> 64 -> 32 -> 1)
 Sources/IconquerAI/Learned/LearnedPolicyConfig.swift      -- tunable parameters
 Sources/IconquerAI/Learned/LearnedPolicyAgent.swift       -- PlayerAgent conformance
 Sources/IconquerAI/Learned/TrainingExample.swift          -- (features, label) data type
@@ -40,7 +42,7 @@ Sources/IconquerTournament/Orchestrator/TournamentAgentFactory.swift -- add "lea
 
 ### Module Placement
 
-All learning code lives in `IconquerAI/Learned/`. The training pipeline reads `IconquerCore` types directly. No new SPM dependencies -- pure Swift numerics only.
+All learning code lives in `IconquerAI/Learned/`. The training pipeline reads `IconquerCore` types directly. New dependency: `mlx-swift` for tensor operations, autodiff, and optimizers.
 
 ---
 
@@ -98,46 +100,60 @@ public struct FeatureExtractor: Sendable {
 
 All features are normalized to roughly [0, 1] so weights are comparable and gradient descent converges uniformly.
 
-### Linear Model
+### Position Network (MLX MLP)
 
 ```swift
-/// A simple linear position evaluator: score = dot(features, weights) + bias.
+import MLX
+import MLXNN
+import MLXOptimizers
+
+/// A small multi-layer perceptron for board position evaluation.
 ///
-/// Trained via stochastic gradient descent on game outcomes.
-/// Weights are stored as a JSON-serializable array for portability.
-public struct LinearModel: Sendable, Codable, Hashable {
+/// Architecture: 12 → 64 (ReLU) → 32 (ReLU) → 1 (sigmoid)
+///
+/// Trained via Adam optimizer on game outcomes using MLX-Swift's
+/// automatic differentiation. GPU-accelerated on Apple Silicon.
+public class PositionNetwork: Module {
 
-    /// The weight vector. Length must equal ``FeatureExtractor/featureCount``.
-    public var weights: [Double]
+    let layer1: Linear  // 12 → 64
+    let layer2: Linear  // 64 → 32
+    let output: Linear  // 32 → 1
 
-    /// Scalar bias term.
-    public var bias: Double
+    public init() {
+        layer1 = Linear(FeatureExtractor.featureCount, 64)
+        layer2 = Linear(64, 32)
+        output = Linear(32, 1)
+    }
 
-    /// Create a model with the given weights and bias.
+    /// Forward pass: features → win probability.
     ///
-    /// - Parameters:
-    ///   - weights: Weight vector (length must match feature count).
-    ///   - bias: Bias term (default 0.0).
-    public init(weights: [Double], bias: Double = 0.0)
+    /// - Parameter x: Batch of feature vectors [batchSize, 12].
+    /// - Returns: Win probabilities [batchSize, 1] in (0, 1).
+    public func callAsFunction(_ x: MLXArray) -> MLXArray {
+        var h = relu(layer1(x))
+        h = relu(layer2(h))
+        return sigmoid(output(h))
+    }
 
-    /// Create a model with random small weights for initialization.
-    ///
-    /// - Parameter rng: Random number generator.
-    /// - Returns: A randomly initialized model.
-    public static func random(using rng: inout some RandomNumberGenerator) -> LinearModel
-
-    /// Evaluate a feature vector, returning a score in [0, 1] via sigmoid.
+    /// Evaluate a single feature vector (convenience for inference).
     ///
     /// - Parameter features: Feature vector from ``FeatureExtractor``.
-    /// - Returns: Position score in [0, 1] where 1.0 = strongly winning.
-    public func evaluate(_ features: [Double]) -> Double
+    /// - Returns: Win probability in (0, 1).
+    public func evaluate(_ features: [Float]) -> Float {
+        let input = MLXArray(features).reshaped([1, features.count])
+        let output = self(input)
+        return output.item(Float.self)
+    }
 
-    /// Raw score before sigmoid activation.
-    ///
-    /// - Parameter features: Feature vector.
-    /// - Returns: dot(features, weights) + bias.
-    public func rawScore(_ features: [Double]) -> Double
+    /// Save model weights to a JSON-compatible format.
+    public func saveWeights(to url: URL) throws
+
+    /// Load model weights from a saved file.
+    public func loadWeights(from url: URL) throws
 }
+```
+
+The MLP captures non-linear feature interactions that a linear model misses — for example, "high continent progress AND concentrated armies" being more valuable than either alone. With 3 layers (12→64→32→1), the model has ~2,800 parameters — small enough to train on thousands of games without overfitting, large enough to learn meaningful patterns.
 ```
 
 ### Training Types
@@ -194,7 +210,7 @@ public struct TrainingPipeline: Sendable {
     /// Result of a training run.
     public struct TrainResult: Sendable, Codable {
         /// The fitted model.
-        public var model: LinearModel
+        public var model: PositionNetwork
 
         /// Training loss (binary cross-entropy) at the final epoch.
         public var trainLoss: Double
@@ -238,10 +254,10 @@ public struct TrainingPipeline: Sendable {
         using rng: inout some RandomNumberGenerator
     ) -> [TrainingExample]
 
-    /// Fit a linear model to training examples via SGD.
+    /// Train a PositionNetwork on training examples using MLX Adam optimizer.
     ///
-    /// Uses binary cross-entropy loss with L2 regularization.
-    /// Shuffles data each epoch for better convergence.
+    /// Uses binary cross-entropy loss with L2 weight decay.
+    /// Shuffles data each epoch. GPU-accelerated on Apple Silicon.
     ///
     /// - Parameters:
     ///   - examples: Training data.
@@ -263,7 +279,7 @@ public struct TrainingPipeline: Sendable {
     ///   - config: Training hyperparameters (learning rate will be halved).
     /// - Returns: The updated model and training diagnostics.
     public func incrementalTrain(
-        model: LinearModel,
+        model: PositionNetwork,
         newExamples: [TrainingExample],
         config: Config
     ) -> TrainResult
@@ -302,7 +318,7 @@ public struct LearnedPolicyConfig: Sendable, Codable, Hashable {
     /// Whether fortification is enabled.
     public var fortifyEnabled: Bool
 
-    public static func `default`(model: LinearModel) -> LearnedPolicyConfig {
+    public static func `default`(model: PositionNetwork) -> LearnedPolicyConfig {
         LearnedPolicyConfig(
             model: model,
             attackCandidateLimit: 20,
@@ -406,9 +422,9 @@ The training pipeline is exposed as a tournament CLI subcommand, not an MCP tool
 
 ## 5. Constraints & Compliance
 
-**No ML Framework Dependency:** Pure Swift implementation. No CoreML, no TensorFlow, no Python bridging. The linear model and SGD trainer are implemented from scratch using only stdlib math operations. This guarantees compatibility with Swift 6.0.3 on roseclub.org (Linux).
+**ML Framework:** Apple MLX-Swift for tensor operations, automatic differentiation, and optimizers. GPU-accelerated on Apple Silicon. No Python bridge, no CoreML. roseclub.org is macOS on Apple Silicon — MLX runs natively.
 
-**Concurrency:** All types are `Sendable` value types (structs). `TrainingPipeline` methods are pure functions that take inputs and return results. No mutable shared state, no actors needed for the model itself.
+**Concurrency:** `PositionNetwork` is a class (required by MLX `Module` protocol) but used in a single-threaded training loop and read-only at inference time. `FeatureExtractor`, `TrainingExample`, and `LearnedPolicyConfig` are `Sendable` value types. The agent wraps the network in an actor if needed for concurrent access.
 
 **Determinism:** Training accepts a `seed` parameter for reproducible train/validation splits. `FeatureExtractor` is deterministic given the same snapshot. The agent's move selection is deterministic given the same model weights and game state.
 
@@ -420,13 +436,13 @@ The training pipeline is exposed as a tournament CLI subcommand, not an MCP tool
 
 **No Hardcoded Constants:** All numeric parameters (learning rate, epochs, regularization, candidate limits) are fields in config structs, never inline literals.
 
-**Platform Compatibility:** Swift 6.0.3 on Linux (roseclub.org). No Foundation-only APIs beyond `JSONEncoder`/`JSONDecoder` and `Date`. No `Accelerate`, no `vDSP`, no platform-conditional compilation needed.
+**Platform Compatibility:** macOS on Apple Silicon (roseclub.org). MLX-Swift requires Apple Silicon for GPU acceleration. Training and inference both run on the Metal GPU. The `FeatureExtractor` and `TrainingExample` types use plain Swift arrays for I/O compatibility; conversion to `MLXArray` happens at the training/inference boundary.
 
 ---
 
 ## 6. Backend Abstraction
 
-Not applicable. The linear model evaluation is a single dot product (12 multiplications + 12 additions + sigmoid). Training on 50,000 examples with 50 epochs completes in under a second on any modern CPU. No GPU or Accelerate backend is warranted.
+MLX-Swift handles GPU acceleration automatically on Apple Silicon. Training runs on the Metal GPU; inference uses the same GPU path but is fast enough that CPU fallback would also work. The 3-layer MLP (2,800 parameters) is tiny by ML standards — training on 50,000 examples completes in seconds on Apple Silicon GPU.
 
 ---
 
@@ -437,7 +453,9 @@ Not applicable. The linear model evaluation is a single dot product (12 multipli
 - `IconquerMatch` -- `PlayerAgent`, `AgentIdentity`
 - `IconquerAI/CombatSimulator` -- for hybrid attack evaluation (optional)
 
-**External Dependencies:** None. Pure Swift stdlib.
+**External Dependencies:**
+- `mlx-swift` (Apple MLX) — tensor operations, autodiff, optimizers, model serialization
+- `mlx-swift-nn` — neural network layers (`Linear`, `Module` protocol)
 
 **Tournament CLI (separate package, separate PR):**
 - `IconquerTournament` -- `TranscriptStore`, `TournamentStore`, `MatchRecord`
@@ -456,11 +474,12 @@ Not applicable. The linear model evaluation is a single dot product (12 multipli
 - Symmetry: two players with mirrored positions produce mirrored features
 - Determinism: same snapshot always produces same features
 
-**Linear Model (LinearModelTests):**
-- Golden path: known weights + known features produce expected score
-- Sigmoid bounds: output is always in (0, 1) regardless of input magnitude
-- Zero weights: all features produce score of sigmoid(bias)
-- Random initialization: weights are within expected bounds
+**Position Network (PositionNetworkTests):**
+- Golden path: initialized network produces output in (0, 1) for any input
+- Output shape: batch of N inputs produces N outputs
+- Gradient flow: loss.backward() produces non-zero gradients on all layers
+- Save/load: weights round-trip through serialization preserving outputs
+- Determinism: same input always produces same output
 
 **Training Pipeline (TrainingPipelineTests):**
 - Convergence: synthetic linearly separable data converges to high accuracy
@@ -528,9 +547,9 @@ This specific input/output pair is the golden path test assertion.
 - [x] New ADR required? Yes -- draft entry below
 
 **New ADR Draft:**
-- **Title:** ADR-T5: Pure-Swift Linear Model for Learned Agent
+- **Title:** ADR-T5: MLX-Swift MLP for Learned Agent
 - **Category:** architecture
-- **Key decision:** Use a hand-rolled linear model with SGD training rather than CoreML, ONNX, or any external ML framework. Rationale: (1) must run on Linux/Swift 6.0.3 where CoreML is unavailable, (2) the training set is small (thousands of games, not millions) so a simple model with good features will outperform a complex model that overfits, (3) zero new dependencies keeps the build fast and auditable.
+- **Key decision:** Use Apple's MLX-Swift framework with a small MLP (12→64→32→1) rather than CoreML, PyTorch, or a hand-rolled linear model. Rationale: (1) MLX-Swift is native Swift with GPU acceleration on Apple Silicon — no Python bridge, (2) roseclub.org is macOS on Apple Silicon where MLX runs natively, (3) an MLP captures non-linear feature interactions that a linear model misses (e.g. "concentrated armies + high continent progress"), (4) MLX's autodiff eliminates hand-rolled gradient code, (5) the model is small enough (2,800 params) to train in seconds on thousands of games without overfitting.
 
 ---
 
@@ -599,41 +618,48 @@ TranscriptStore              TournamentStore
                 |  train/validation split
                 v
          TrainResult
-           .model: LinearModel
+           .model: PositionNetwork
            .validationAccuracy: Double
                 |
                 v
-         weights.json  -->  LearnedPolicyAgent
+         model.safetensors  -->  LearnedPolicyAgent
 ```
 
-## Appendix B: SGD Implementation Notes
+## Appendix B: MLX Training Loop
 
-The binary cross-entropy loss for a single example is:
+```swift
+import MLX
+import MLXNN
+import MLXOptimizers
 
+let model = PositionNetwork()
+let optimizer = Adam(learningRate: 0.001)
+
+func lossFn(model: PositionNetwork, x: MLXArray, y: MLXArray) -> MLXArray {
+    let predictions = model(x)
+    // Binary cross-entropy with numerical stability
+    let clipped = clip(predictions, min: 1e-7, max: 1 - 1e-7)
+    return -mean(y * log(clipped) + (1 - y) * log(1 - clipped))
+}
+
+for epoch in 0..<config.epochs {
+    // Shuffle training data each epoch
+    let indices = MLXArray(Array(0..<trainCount)).shuffled()
+    let xBatch = trainFeatures[indices]
+    let yBatch = trainLabels[indices]
+
+    // Forward + backward + update (MLX handles autodiff)
+    let (loss, grads) = valueAndGrad(model: model) { model in
+        lossFn(model: model, x: xBatch, y: yBatch)
+    }
+    optimizer.update(model: model, gradients: grads)
+    eval(model, optimizer)  // force evaluation
+
+    logger.info("Epoch \(epoch): loss=\(loss.item(Float.self))")
+}
 ```
-L = -[y * log(p) + (1 - y) * log(1 - p)]
-```
 
-where `y` is the label and `p = sigmoid(dot(features, weights) + bias)`.
-
-The gradient with respect to weight `w_i` is:
-
-```
-dL/dw_i = (p - y) * x_i
-```
-
-where `x_i` is feature `i`. The gradient for bias is simply `(p - y)`.
-
-With L2 regularization:
-
-```
-w_i <- w_i - lr * [(p - y) * x_i + lambda * w_i]
-bias <- bias - lr * (p - y)
-```
-
-This is numerically stable as long as we clamp `p` away from exactly 0 or 1 before taking log (use `max(1e-15, min(1 - 1e-15, p))`).
-
-**Gradient clipping:** If `abs(gradient) > 10.0`, clamp to +/-10.0 to prevent exploding gradients from outlier examples.
+MLX's `valueAndGrad` handles all gradient computation automatically — no hand-rolled derivatives. The `Adam` optimizer with weight decay provides L2 regularization and adaptive learning rates.
 
 ## Appendix C: Gini Coefficient Computation
 
