@@ -179,9 +179,11 @@ The territory now belongs to the attacking player.
 
 # 11. Fortification Phase
 
-At the end of the turn, the player may **move armies between two territories they control**, provided:
+At the end of the turn, the player may **move as many armies as they'd like** from one (and only one) of their territories into one (and only one) of their **adjacent** territories, provided:
 
-- the territories are connected through owned territories
+- the source and target territories are adjacent
+- the player owns both territories
+- at least **one army** remains behind on the source territory
 - the move happens only once per turn
 
 This allows players to reposition their defenses.
