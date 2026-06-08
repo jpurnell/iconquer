@@ -15,3 +15,15 @@ dist/
 **/.#*
 **/#*#
 **/*~
+
+# Swift Package Manager build artifacts
+.build/
+
+# Quality gate ephemeral outputs
+development-guidelines/07_LIBRARY/latestReport.json
+
+# Profiling data
+default.profraw
+
+# Empty scratch files
+llm
