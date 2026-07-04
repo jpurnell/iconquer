@@ -1,4 +1,6 @@
+#if canImport(os)
 import os
+#endif
 
 private let logger = Logger(subsystem: "com.iconquer.mlxtest", category: "main")
 
