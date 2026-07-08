@@ -1,4 +1,5 @@
 // swift-tools-version: 6.2
+// legibility:description: The iConquer SwiftUI app — a modern Swift port of the classic Risk-style turn-based strategy game.
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
