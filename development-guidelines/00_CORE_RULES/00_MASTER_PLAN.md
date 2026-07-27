@@ -190,4 +190,4 @@ The `IconquerCore` package is platform-agnostic and headless so the rules engine
 
 ---
 
-**Last Updated:** 2026-04-26
+**Last Updated:** 2026-07-27
