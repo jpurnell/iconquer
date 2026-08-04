@@ -27,3 +27,8 @@ default.profraw
 
 # Empty scratch files
 llm
+
+# Vendored development-guidelines framework (managed, replaceable)
+/development-guidelines/
+/.claude/skills/
+/development-guidelines.pre-v2/
