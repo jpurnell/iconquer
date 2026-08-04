@@ -22,7 +22,7 @@ Fix quality gate warnings (consistency checker flagging institutional docc Viola
 
 ### Implementation
 - `Package.swift`: swift-tools-version 6.3 -> 6.2 (no 6.3-specific features in use)
-- `.gitignore`: added `.build/`, `development-guidelines/project/library/latestReport.json`, `default.profraw`, `llm`
+- `.gitignore`: added `.build/`, `project/library/latestReport.json`, `default.profraw`, `llm`
 - `.quality-gate.yml`: existing `ijs:` telemetry section included in commit (was previously unstaged)
 
 ## 4. Mandatory Quality Gate (Zero Tolerance)

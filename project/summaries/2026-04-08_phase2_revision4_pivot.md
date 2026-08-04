@@ -152,12 +152,12 @@ These are the things the next session **must not forget**:
 
 | What | Where |
 | :--- | :--- |
-| Active checklist | `iconquer/development-guidelines/project/checklists/CURRENT_iconquer_phase2.md` |
-| Phase 2 master proposal (Revision 4, APPROVED) | `iconquer/development-guidelines/project/plans/upcoming/2026-04-08_iconquer_phase2_AI_CLI_SwiftUI.md` |
-| MultiAgentPlayerBinding (APPROVED) | `iconquer/development-guidelines/project/plans/upcoming/MultiAgentPlayerBinding.md` |
-| Phase 1 v0.1.0 completion summary | `iconquer/development-guidelines/project/summaries/2026-04-08_iconquer_core_phase1_complete_v0.1.0.md` |
-| Phase 2 design + Step 1 summary | `iconquer/development-guidelines/project/summaries/2026-04-08_phase2_design_and_step1.md` |
-| This summary (Phase 2 Steps 1–3 + Revision 4 pivot) | `iconquer/development-guidelines/project/summaries/2026-04-08_phase2_revision4_pivot.md` |
+| Active checklist | `iconquer/project/checklists/CURRENT_iconquer_phase2.md` |
+| Phase 2 master proposal (Revision 4, APPROVED) | `iconquer/project/plans/upcoming/2026-04-08_iconquer_phase2_AI_CLI_SwiftUI.md` |
+| MultiAgentPlayerBinding (APPROVED) | `iconquer/project/plans/upcoming/MultiAgentPlayerBinding.md` |
+| Phase 1 v0.1.0 completion summary | `iconquer/project/summaries/2026-04-08_iconquer_core_phase1_complete_v0.1.0.md` |
+| Phase 2 design + Step 1 summary | `iconquer/project/summaries/2026-04-08_phase2_design_and_step1.md` |
+| This summary (Phase 2 Steps 1–3 + Revision 4 pivot) | `iconquer/project/summaries/2026-04-08_phase2_revision4_pivot.md` |
 | `IconquerCore` package (v0.2.0 tagged) | `~/Dropbox/Computer/Development/Swift/IconquerCore/` |
 | `IconquerAI` package (initial commit only — Step 3 shipped) | `~/Dropbox/Computer/Development/Swift/IconquerAI/` |
 | SwiftMCPServer (Justin's MCP framework) | `github.com/jpurnell/SwiftMCPServer` |

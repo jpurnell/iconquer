@@ -83,8 +83,8 @@ This is running now (PID 30530) but hasn't been validated yet.
 ### Key Files
 - GVN source: `IconquerAI/Sources/IconquerAI/Learned/G*.swift`, `TDTrainer.swift`
 - GVN tests: `IconquerAI/Tests/IconquerAITests/G*Tests.swift`, `TDTrainerTests.swift`
-- Design proposal: `development-guidelines/project/plans/proposals/IconquerAI_GraphValueNetwork.md`
-- Journey narrative: `development-guidelines/project/summaries/2026-04-26_t5_research_journey.md`
+- Design proposal: `project/plans/proposals/IconquerAI_GraphValueNetwork.md`
+- Journey narrative: `project/summaries/2026-04-26_t5_research_journey.md`
 - Tournament binary: `IconquerTournament/.xcodebuild/Build/Products/Release/iconquer-tournament`
 - Training log: `/tmp/graph-train-v3.log`
 

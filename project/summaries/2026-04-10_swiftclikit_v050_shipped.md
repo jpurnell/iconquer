@@ -82,7 +82,7 @@ v1.0.0 is the last release before integration with IconquerCLI. It ships:
 | Linux CI (GitHub Actions) | Not started |
 | Performance target: <1ms frame for 200x50 | Not started |
 
-Detailed proposal: `development-guidelines/project/plans/upcoming/SwiftCLIKit_v100_and_v1x.md`
+Detailed proposal: `project/plans/upcoming/SwiftCLIKit_v100_and_v1x.md`
 
 ## Post-1.0.0 roadmap additions (NEW — from feature review)
 
@@ -126,15 +126,15 @@ These features were identified during the session and should be incorporated int
 ## Key files to read on resume
 
 1. `SwiftCLIKit/CLAUDE.md` — project overview and architecture
-2. `SwiftCLIKit/development-guidelines/project/plans/upcoming/SwiftCLIKit_v100_and_v1x.md` — v1.0.0 detailed proposal
-3. `SwiftCLIKit/development-guidelines/project/plans/upcoming/SwiftCLIKit_ROADMAP.md` — master roadmap
+2. `SwiftCLIKit/project/plans/upcoming/SwiftCLIKit_v100_and_v1x.md` — v1.0.0 detailed proposal
+3. `SwiftCLIKit/project/plans/upcoming/SwiftCLIKit_ROADMAP.md` — master roadmap
 4. This summary — for the post-1.0 feature additions that need proposals
-5. `iconquer/development-guidelines/project/plans/upcoming/TUIPolish_v050.md` — IconquerCLI integration plan (after SwiftCLIKit 1.0)
+5. `iconquer/project/plans/upcoming/TUIPolish_v050.md` — IconquerCLI integration plan (after SwiftCLIKit 1.0)
 
 ## Test suite audit — gaps to fix BEFORE v1.0.0
 
 An external audit identified blind spots across all 5 releases. Full audit archived at
-`SwiftCLIKit/development-guidelines/project/library/test_audit_v050.md`. Key gaps by version:
+`SwiftCLIKit/project/library/test_audit_v050.md`. Key gaps by version:
 
 ### v0.1.0 Foundation
 - **RawTerminal crash resilience:** verify deinit restores termios even on partial init

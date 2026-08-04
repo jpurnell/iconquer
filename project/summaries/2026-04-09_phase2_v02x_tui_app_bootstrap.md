@@ -97,7 +97,7 @@
 
 ## Key files to read on resume
 
-1. `development-guidelines/project/summaries/` — this file
+1. `project/summaries/` — this file
 2. `IconquerCLI/development-guidelines/rules/architecture_decisions.md` — ADRs 001-008
 3. `IconquerGameKit/Sources/IconquerGameKit/GameViewModel.swift` — the shared brain
 4. `IconquerApp/IconquerApp/Views/GameView.swift` — the SwiftUI game view

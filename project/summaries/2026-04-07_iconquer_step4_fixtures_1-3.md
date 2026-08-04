@@ -162,9 +162,9 @@ Several non-obvious items the next session **must** preserve:
 
 | What | Where |
 | :--- | :--- |
-| Active checklist | `iconquer/development-guidelines/project/checklists/CURRENT_iconquer_core_phase1.md` |
-| TS oracle notes | `iconquer/development-guidelines/project/plans/upcoming/2026-04-06_TS_oracle_notes.md` |
-| Phase 1 design proposal | `iconquer/development-guidelines/project/plans/upcoming/2026-04-06_IconquerCore_Phase1.md` |
+| Active checklist | `iconquer/project/checklists/CURRENT_iconquer_core_phase1.md` |
+| TS oracle notes | `iconquer/project/plans/upcoming/2026-04-06_TS_oracle_notes.md` |
+| Phase 1 design proposal | `iconquer/project/plans/upcoming/2026-04-06_IconquerCore_Phase1.md` |
 | TS reference engine | `iconquer/src/core/game.ts` |
 | TS RNG (mulberry32) | `iconquer/src/core/rng.ts` |
 | Fixture dump script | `iconquer/scripts/dump-parity-fixtures.ts` |

@@ -102,7 +102,7 @@ Kick off the iconquer Swift modernization project: stand up the Design-First TDD
 
 ## 5. Project State Updates
 
-- ✅ Active checklist updated through Step 3: `development-guidelines/project/checklists/CURRENT_iconquer_core_phase1.md`
+- ✅ Active checklist updated through Step 3: `project/checklists/CURRENT_iconquer_core_phase1.md`
 - ✅ `master_plan.md` customized in both repos
 - ✅ Three reusable feedback memories saved (sibling repos, vendor guidelines, no hardcoded constants, no `String(format:)`)
 - ✅ One project memory (iconquer AI modernization)
@@ -180,9 +180,9 @@ Several non-obvious items the next session **must** preserve:
 
 | What | Where |
 | :--- | :--- |
-| Active checklist | `iconquer/development-guidelines/project/checklists/CURRENT_iconquer_core_phase1.md` |
-| Phase 1 design proposal | `iconquer/development-guidelines/project/plans/upcoming/2026-04-06_IconquerCore_Phase1.md` |
-| TS oracle notes (READ FIRST) | `iconquer/development-guidelines/project/plans/upcoming/2026-04-06_TS_oracle_notes.md` |
+| Active checklist | `iconquer/project/checklists/CURRENT_iconquer_core_phase1.md` |
+| Phase 1 design proposal | `iconquer/project/plans/upcoming/2026-04-06_IconquerCore_Phase1.md` |
+| TS oracle notes (READ FIRST) | `iconquer/project/plans/upcoming/2026-04-06_TS_oracle_notes.md` |
 | TS reference engine | `iconquer/src/core/game.ts` |
 | TS RNG (mulberry32) | `iconquer/src/core/rng.ts` |
 | Fixture dump script | `iconquer/scripts/dump-parity-fixtures.ts` |

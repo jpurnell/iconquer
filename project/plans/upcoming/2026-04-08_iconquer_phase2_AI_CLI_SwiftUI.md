@@ -822,7 +822,7 @@ If a criterion is violated, **flag it in a session summary and re-confirm with J
 - `IconquerAI@v0.1.0` tagged: `RandomStrategy` + `GreedyStrategy`, all unit tests passing, DocC clean.
 - `IconquerCLI@v0.1.0` tagged: `play` + `simulate` + `replay` subcommands working, full test suite (parser, renderer, simulation), DocC + README quickstart.
 - AI-vs-AI parity-style fixture: `simulate --p1 random --p2 random --seed 42` produces a byte-stable transcript and a known final `GameSnapshot`, locked into `IconquerCLI`'s test suite.
-- One Phase 2 completion summary in `iconquer/development-guidelines/project/summaries/`.
+- One Phase 2 completion summary in `iconquer/project/summaries/`.
 - `iConquer.app` (SwiftUI) is *not* an acceptance criterion for v0.2.0 — it's `v0.3.0`.
 
 ## 11. Open RED-GREEN Order if Approved (REVISED)
@@ -875,7 +875,7 @@ If a criterion is violated, **flag it in a session summary and re-confirm with J
 
 24. **DocC + README + `--version`**, tag `IconquerCLI@v0.1.0` = **Phase 2 v0.2.0 ship** (alongside `IconquerCore@v0.2.0`, `IconquerAI@v0.1.0`, `IconquerMCP@v0.1.0`).
 
-25. Phase 2 v0.2.0 completion summary in `iconquer/development-guidelines/project/summaries/`.
+25. Phase 2 v0.2.0 completion summary in `iconquer/project/summaries/`.
 
 26. *(v0.3.0 work — `IconquerApp` SwiftUI shell + certified networked-multiplayer HTTP transport — begins separately.)*
 

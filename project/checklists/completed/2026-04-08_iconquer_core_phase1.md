@@ -35,7 +35,7 @@
 - [x] Noted RULES.md deviations (fortify adjacent-only, defender.armies=-1 sentinel for capture, 20 hardcoded initial armies, tiredArmies=-1 fresh sentinel) — all to be mirrored as-is, treating TS as the authoritative oracle
 - [x] **RNG decision: mirror mulberry32 bit-for-bit.** No SplitMix64 swap needed.
 
-Notes file: `development-guidelines/project/plans/upcoming/2026-04-06_TS_oracle_notes.md`
+Notes file: `project/plans/upcoming/2026-04-06_TS_oracle_notes.md`
 Three non-blocking open questions for Justin captured at the bottom of that file.
 
 ---
@@ -97,7 +97,7 @@ For each scenario in this order, write the failing parity test first, then the m
 - [x] All 12 parity fixtures pass
 - [x] DocC builds clean (via swift-docc-plugin 1.4.0)
 - [x] Tag `IconquerCore` v0.1.0 (tagged 2026-04-08 on the IconquerCore sibling repo)
-- [x] Write Phase 1 completion summary in `iconquer/development-guidelines/project/summaries/`
+- [x] Write Phase 1 completion summary in `iconquer/project/summaries/`
 - [x] Move this checklist to `04_99_COMPLETED/`
 
 ---

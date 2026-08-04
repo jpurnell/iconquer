@@ -53,7 +53,7 @@ Apply the overnight 750k-game tournament results: retrain the T5 learned agent, 
 ### Files Created/Modified
 - **Created:** `IconquerTournament/scripts/self-play-loop.sh`
 - **Created:** `/tmp/t5-overnight/STRATEGY_GUIDE_FRIENDLY.md`
-- **Created:** `development-guidelines/project/plans/proposals/IconquerApp_MultiplatformSwiftUI.md`
+- **Created:** `project/plans/proposals/IconquerApp_MultiplatformSwiftUI.md`
 - **Modified:** `IconquerTournament/Sources/iconquer-tournament/TournamentCommand.swift` (added `--winner-filter`)
 - **Rebuilt:** `IconquerTournament/.xcodebuild/Build/Products/Release/iconquer-tournament`
 

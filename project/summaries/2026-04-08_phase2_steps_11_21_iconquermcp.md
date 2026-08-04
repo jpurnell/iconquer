@@ -109,9 +109,9 @@ The final Phase 2 v0.2.0 ship. Pure-Swift command-line app consuming all four sh
 
 | What | Where |
 | :--- | :--- |
-| Active checklist | `iconquer/development-guidelines/project/checklists/CURRENT_iconquer_phase2.md` |
-| Phase 2 master proposal (Revision 4) | `iconquer/development-guidelines/project/plans/upcoming/2026-04-08_iconquer_phase2_AI_CLI_SwiftUI.md` |
-| MultiAgent design | `iconquer/development-guidelines/project/plans/upcoming/MultiAgentPlayerBinding.md` |
+| Active checklist | `iconquer/project/checklists/CURRENT_iconquer_phase2.md` |
+| Phase 2 master proposal (Revision 4) | `iconquer/project/plans/upcoming/2026-04-08_iconquer_phase2_AI_CLI_SwiftUI.md` |
+| MultiAgent design | `iconquer/project/plans/upcoming/MultiAgentPlayerBinding.md` |
 | `IconquerCore@v0.3.1` | `~/Dropbox/Computer/Development/Swift/IconquerCore/` |
 | `IconquerMatch@v0.1.0` | `~/Dropbox/Computer/Development/Swift/IconquerMatch/` |
 | `IconquerAI@v0.1.0` | `~/Dropbox/Computer/Development/Swift/IconquerAI/` |

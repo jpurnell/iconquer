@@ -62,7 +62,7 @@ Full MVU TUI rewrite:
 
 - `development-guidelines/` cloned into SwiftCLIKit repo (with .git for upstream sync)
 - `CLAUDE.md` updated with architecture section
-- Test audit archived at `development-guidelines/project/library/test_audit_v050.md`
+- Test audit archived at `project/library/test_audit_v050.md`
 - Memory updated with project state
 
 ---
@@ -105,21 +105,21 @@ v1.0.0 Ship It (SHIPPED)
 
 ### SwiftCLIKit
 1. `SwiftCLIKit/CLAUDE.md` — architecture overview
-2. `SwiftCLIKit/development-guidelines/project/plans/upcoming/SwiftCLIKit_ROADMAP.md` — master roadmap
-3. `SwiftCLIKit/development-guidelines/project/plans/upcoming/SwiftCLIKit_v100_and_v1x.md` — v1.0.0 detailed proposal
-4. `SwiftCLIKit/development-guidelines/project/plans/proposals/` — all v1.x proposals
-5. `SwiftCLIKit/development-guidelines/project/library/test_audit_v050.md` — audit reference
+2. `SwiftCLIKit/project/plans/upcoming/SwiftCLIKit_ROADMAP.md` — master roadmap
+3. `SwiftCLIKit/project/plans/upcoming/SwiftCLIKit_v100_and_v1x.md` — v1.0.0 detailed proposal
+4. `SwiftCLIKit/project/plans/proposals/` — all v1.x proposals
+5. `SwiftCLIKit/project/library/test_audit_v050.md` — audit reference
 
 ### IconquerCLI
 1. `IconquerCLI/Sources/IconquerCLILib/App/GameApp.swift` — the MVU entry point
 2. `IconquerCLI/Sources/IconquerCLILib/App/GameModel.swift` — complete game + UI state
 3. `IconquerCLI/Sources/IconquerCLILib/App/GameUpdate.swift` — pure update function
 4. `IconquerCLI/Sources/IconquerCLILib/App/GameView.swift` — view composition
-5. `iconquer/development-guidelines/project/plans/proposals/IconquerCLI_v050_Combined.md` — the shipped design
+5. `iconquer/project/plans/proposals/IconquerCLI_v050_Combined.md` — the shipped design
 
 ### iconquer (parent)
 1. This summary
-2. `development-guidelines/project/summaries/2026-04-10_swiftclikit_v050_shipped.md` — earlier summary (partially outdated by this one)
+2. `project/summaries/2026-04-10_swiftclikit_v050_shipped.md` — earlier summary (partially outdated by this one)
 
 ---
 
