@@ -107,9 +107,21 @@ The `IconquerCore` package is platform-agnostic and headless so the rules engine
 - T5 LearnedPolicyAgent underperforming (Elo ~1405, 4th of 4). Model architecture (12→64→32→1 MLP) appears capacity-limited at 89% accuracy ceiling regardless of training data size.
 
 ### Current Priorities
-1. Review and approve multiplatform SwiftUI app design proposal (`IconquerApp_MultiplatformSwiftUI.md`)
-2. Begin Phase 3: SwiftUI app (iPhone/iPad/Mac/watchOS)
-3. Design visionOS immersive space experience (miniature globe)
+
+Reconciled 2026-08-12 — the first two had been overtaken by shipped work.
+
+1. ~~Review and approve multiplatform SwiftUI app design proposal
+   (`IconquerApp_MultiplatformSwiftUI.md`)~~ — the app shipped; the proposal is
+   history, not a pending decision.
+2. ~~Begin Phase 3: SwiftUI app (iPhone/iPad/Mac/watchOS)~~ — begun and largely
+   delivered on iOS / macOS / **tvOS** / visionOS. See Phase 3 for the item-by-item
+   state and the three genuinely-unstarted pieces.
+3. Design visionOS immersive space experience (miniature globe) — still open, and
+   now better positioned: the app's vector map already reprojects, which is what the
+   globe needs.
+4. Finish Phase 3's remaining three, all confirmed in scope 2026-08-12 and none
+   started: **watchOS** async turn-based play, **Widgets**, and **Game Center /
+   iCloud save**. Nothing is blocked on a decision; they are open work.
 
 ---
 
@@ -166,15 +178,48 @@ The `IconquerCore` package is platform-agnostic and headless so the rules engine
 - [x] Tournament infrastructure with Elo, evolutionary tuning, neural network training
 - [x] 750k-game overnight tournament + self-play improvement pipeline
 
-### Phase 3: Multiplatform SwiftUI App — IN PROGRESS
-- [ ] SwiftUI map view with Background.jpg + 42 country PNG overlays
-- [ ] Two-tap interaction model for all turn phases
-- [ ] iOS 26+ Liquid Glass styling throughout
-- [ ] iPad NavigationSplitView + Mac menu bar / keyboard shortcuts
-- [ ] Multiplayer lobby UI backed by existing server
-- [ ] watchOS async turn-based play via server notifications
-- [ ] Widgets (game status, turn reminder)
-- [ ] Game Center / iCloud save
+### Phase 3: Multiplatform SwiftUI App — IN PROGRESS (6 of 9)
+
+Reconciled 2026-08-12 against the `IconquerApp` source, which had been shipping for
+months while this list still read as unstarted. Verified item by item, not ticked
+from memory.
+
+- [x] ~~SwiftUI map view with Background.jpg + 42 country PNG overlays~~ — **shipped,
+      but built differently.** `IconquerApp` renders **vector GeoJSON polygons**
+      (`Resources/geo`, `GeoStore`, `CountryGeometry`, `MapProjection`), not raster
+      PNG overlays. Vectors scale to any rect and reproject, which the PNG approach
+      could not do — and Phase 4's globe needs exactly that reprojection. The original
+      plan was wrong on the means, not the end; recording it rather than quietly
+      rewriting the goal.
+- [x] Two-tap interaction model for all turn phases — `selectedSource` /
+      `selectedTarget` with a two-step confirm (`GameViewModel:141,193`)
+- [x] iOS 26+ Liquid Glass styling throughout — `GlassCard`, `glassBackground(in:)`;
+      all four targets are `.v26`
+- [x] iPad NavigationSplitView + Mac menu bar / keyboard shortcuts — `SidebarView`,
+      `GameBoardView`, `GameCommands`, `KeyboardShortcutModifier`
+- [x] Multiplayer lobby UI backed by existing server — `LobbyView`, `RoomView`,
+      `MultiplayerViewModel`
+- [x] **tvOS** — shipped, and confirmed in scope 2026-08-12. `IconquerApp` targets
+      `.tvOS(.v26)` and `WorldMapView` carries a tvOS rendering path. It had shipped
+      without appearing in any plan; it is now a first-class platform here.
+- [ ] watchOS async turn-based play via server notifications — **in scope, not
+      started.** Not a target in `Package.swift` or `project.yml` yet. Adding it means
+      a new platform target plus a push path from `IconquerServer`.
+- [ ] Widgets (game status, turn reminder) — **in scope, not started.** No WidgetKit
+      usage anywhere yet.
+- [ ] Game Center / iCloud save — **in scope, not started.** Saves are currently local
+      via `SaveLoadManager`, which re-throws rather than wrapping, so a cloud backing
+      store slots in behind it without changing its error surface.
+
+**Platform set for this phase:** iOS, macOS, **tvOS**, visionOS shipping today;
+watchOS still to come. The original list read "iPhone/iPad/Mac/watchOS", which was
+wrong in both directions — it omitted a platform that shipped and claimed one that
+never started.
+
+**Also shipped, unplanned:** an App Store privacy manifest, and accessibility
+adaptation across Reduce Transparency / Reduce Motion / Differentiate Without Color
+with VoiceOver coverage of the board. See
+`IconquerApp/project/summaries/2026-08-12_PrivacyManifest_Accessibility.md`.
 
 ### Phase 4: visionOS Immersive Experience
 - [ ] RealityKit miniature globe with 42 country territories
@@ -190,4 +235,11 @@ The `IconquerCore` package is platform-agnostic and headless so the rules engine
 
 ---
 
-**Last Updated:** 2026-07-27
+**Last Updated:** 2026-08-12 — reconciled Phase 3 and Current Priorities against the
+shipped `IconquerApp` source. Five of eight Phase 3 items were already delivered while
+the list still read as unstarted; one shipped by a different means than planned (vector
+GeoJSON, not PNG overlays) and that divergence is recorded rather than papered over.
+Both questions it surfaced were answered the same day: **tvOS is officially in scope**
+(it had shipped without appearing in any plan), and **watchOS, Widgets, and Game
+Center / iCloud save all remain in scope** — open work, not dropped scope. Phase 3 is
+now six of nine delivered, with tvOS added as an item in its own right.
