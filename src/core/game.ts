@@ -36,6 +36,34 @@ interface RuntimeState {
 // CardValueMode.officialProgressive.
 const OFFICIAL_CARD_SCHEDULE = [4, 6, 8, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60];
 
+// Sentinel suit identifying a wild card. Mirrors IconquerCore's
+// Card.wildSuit.
+const WILD_SUIT = -1;
+
+// Cards required to make one trade-in set.
+const CARD_SET_SIZE = 3;
+
+// Whether `cards` form a valid trade-in set: all the same design or all
+// different designs, with wilds standing in for any design. With at least
+// one wild any correctly sized hand qualifies — the two remaining cards are
+// either a pair or two different designs, and the wild completes either.
+function isValidSet(cards: Card[], setSize: number): boolean {
+  if (setSize <= 0 || cards.length !== setSize) return false;
+  const suits = cards.filter((card) => card.suit !== WILD_SUIT).map((card) => card.suit);
+  if (suits.length <= 1) return true;
+  const distinct = new Set(suits);
+  return distinct.size === 1 || distinct.size === suits.length;
+}
+
+// Whether `cards` divides cleanly into whole valid sets.
+function formsValidSets(cards: Card[], setSize: number): boolean {
+  if (setSize <= 0 || cards.length === 0 || cards.length % setSize !== 0) return false;
+  for (let i = 0; i < cards.length; i += setSize) {
+    if (!isValidSet(cards.slice(i, i + setSize), setSize)) return false;
+  }
+  return true;
+}
+
 // Army bonus for the nth trade-in of the game (n is 1-based).
 function cardSetValue(n: number): number {
   if (n <= 0) return 0;
@@ -147,6 +175,7 @@ export class GameEngine {
       winnerId: this.winnerId,
       mustTurnInCards: this.mustTurnInCards,
       needsCardTurnIn: this.needsCardTurnIn,
+      cardSetsTurnedIn: this.cardSetsTurnedIn,
     };
   }
 
@@ -597,9 +626,14 @@ export class GameEngine {
 
   turnInCards(playerId: PlayerId, cards: Card[]): void {
     if (!cards.length) return;
+    // Three of a kind, one of each, or a wild standing in for either — and
+    // whole sets only. The old count-of-three loop paid out for any three
+    // cards, and dropped the fourth card of a four-card hand while paying
+    // for one set.
+    if (!formsValidSets(cards, CARD_SET_SIZE)) return;
     const player = this.player(playerId);
 
-    for (let i = 0; i < Math.floor(cards.length / 3); i += 1) {
+    for (let i = 0; i < Math.floor(cards.length / CARD_SET_SIZE); i += 1) {
       this.cardSetsTurnedIn += 1;
       player.unallocatedArmies += cardSetValue(this.cardSetsTurnedIn);
     }
@@ -907,8 +941,8 @@ export class GameEngine {
     this.countryIds().forEach((countryId, i) => {
       cards.push({ name: countryId, countryId, suit: (i % 3) as 0 | 1 | 2 });
     });
-    cards.push({ name: "Wild 0", countryId: null, suit: -1 });
-    cards.push({ name: "Wild 1", countryId: null, suit: -1 });
+    cards.push({ name: "Wild 0", countryId: null, suit: WILD_SUIT });
+    cards.push({ name: "Wild 1", countryId: null, suit: WILD_SUIT });
 
     this.discardPile = cards;
     this.shuffleDeck();

@@ -105,4 +105,8 @@ export interface GameSnapshot {
   winnerId: PlayerId | null;
   mustTurnInCards: boolean;
   needsCardTurnIn: boolean;
+  // Card sets traded in across the whole game. Drives the escalating value
+  // of the next trade-in — without it an agent reading a snapshot cannot
+  // tell a 4-army set from a 20-army one.
+  cardSetsTurnedIn: number;
 }

@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `turnInCards` accepted any three cards. Risk requires three of a kind or
+  one of each, with wilds standing in for either, and the deck has carried
+  suits and wilds all along — only the check was missing. Whole valid sets
+  are now required, so a four-card hand no longer loses its fourth card to
+  the integer division while paying for a single set.
+- `getSnapshot()` now reports `cardSetsTurnedIn`. The escalating trade-in
+  value is a real part of the position, and a consumer reading a snapshot
+  could not previously tell a 4-army set from a 20-army one. All 12 parity
+  fixtures gained the key and nothing else changed.
 - `pickCountry` advanced the seat with `selectNextAlivePlayer()`, which skips
   players holding zero countries. During `PickCountries` every player holds
   zero, so the rotation parked on the first seat and that seat could claim the
