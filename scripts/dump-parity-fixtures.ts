@@ -467,7 +467,7 @@ const SCENARIOS: Scenario[] = [
             engine.startGame();
             engine.pickCountry("P1", "North");
             engine.pickCountry("P2", "Middle");
-            engine.pickCountry("P2", "South");
+            engine.pickCountry("P1", "South");
             for (let i = 0; i < 100; i += 1) {
                 const snap = engine.getSnapshot();
                 if (snap.phase !== "initializeArmies") break;
@@ -630,10 +630,10 @@ const SCENARIOS: Scenario[] = [
                 seed: 42,
             });
             engine.startGame();
-            // Manual pick: P1 takes A, P2 takes B, C, D.
+            // Manual pick: claims alternate through the seat rotation.
             engine.pickCountry("P1", "A");
             engine.pickCountry("P2", "B");
-            engine.pickCountry("P2", "C");
+            engine.pickCountry("P1", "C");
             engine.pickCountry("P2", "D");
             // Drain init.
             for (let i = 0; i < 200; i += 1) {

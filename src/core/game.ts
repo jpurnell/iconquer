@@ -31,6 +31,19 @@ interface RuntimeState {
   pendingAdvance: { from: CountryId; to: CountryId } | null;
 }
 
+// Official Risk trade-in schedule: 4, 6, 8, 10, 15, 20, 25 ... then +5
+// per set beyond the table. Mirrors IconquerCore's
+// CardValueMode.officialProgressive.
+const OFFICIAL_CARD_SCHEDULE = [4, 6, 8, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60];
+
+// Army bonus for the nth trade-in of the game (n is 1-based).
+function cardSetValue(n: number): number {
+  if (n <= 0) return 0;
+  const idx = n - 1;
+  if (idx < OFFICIAL_CARD_SCHEDULE.length) return OFFICIAL_CARD_SCHEDULE[idx];
+  return OFFICIAL_CARD_SCHEDULE[OFFICIAL_CARD_SCHEDULE.length - 1] + (idx - OFFICIAL_CARD_SCHEDULE.length + 1) * 5;
+}
+
 export class GameEngine {
   readonly map: MapDefinition;
   readonly settings: Settings;
@@ -44,7 +57,9 @@ export class GameEngine {
   private mustTurnInCards = false;
   private needsCardTurnIn = false;
   private winnerId: PlayerId | null = null;
-  private currentCardSetValue = 5;
+  // Number of card sets traded in across the whole game. Drives the
+  // official progressive schedule below.
+  private cardSetsTurnedIn = 0;
   private conquestEvents = 0;
 
   private readonly playersOrder: PlayerId[];
@@ -198,10 +213,18 @@ export class GameEngine {
 
   pickCountry(playerId: PlayerId, countryId: CountryId): void {
     if (this.phase !== GamePhase.PickCountries) return;
+    // Claims follow the seat rotation, one country at a time, as in a
+    // physical Risk setup. Without this the caller could claim for any
+    // player and hand one seat a board the rules never granted it.
+    if (playerId !== this.currentPlayerId()) return;
     const country = this.country(countryId);
     if (country.ownerId) return;
     this.transferCountry(countryId, playerId, false);
-    this.selectNextAlivePlayer();
+    // Plain +1 rotation, NOT selectNextAlivePlayer(): that one skips players
+    // holding zero countries, and during PickCountries every player holds
+    // zero. Using it here parks currentPlayerIndex on the first seat, which
+    // let that seat claim the entire board.
+    this.rotateToNextPlayer();
 
     if (this.countryIds().every((id) => this.country(id).ownerId !== null)) {
       this.donePickingCountries();
@@ -399,8 +422,12 @@ export class GameEngine {
     const country = this.country(countryId);
     if (country.ownerId !== playerId) return;
 
+    // A territory always keeps a garrison of at least one army, as in
+    // official Risk. `tiredArmies` can be 0 (or the -1 sentinel), so the
+    // floor of 1 is what stops a fortify from emptying the origin.
     const tired = Math.max(country.tiredArmies, 0);
-    const movable = country.armies - tired;
+    const garrison = Math.max(tired, 1);
+    const movable = country.armies - garrison;
     if (movable <= 0) return;
 
     const runtime = this.runtime.get(playerId)!;
@@ -409,7 +436,7 @@ export class GameEngine {
 
     const player = this.player(playerId);
     player.unallocatedArmies = movable;
-    country.armies = tired;
+    country.armies = garrison;
     this.setCurrentCountry(countryId);
   }
 
@@ -573,8 +600,8 @@ export class GameEngine {
     const player = this.player(playerId);
 
     for (let i = 0; i < Math.floor(cards.length / 3); i += 1) {
-      player.unallocatedArmies += this.currentCardSetValue;
-      this.currentCardSetValue += this.settings.cardValues;
+      this.cardSetsTurnedIn += 1;
+      player.unallocatedArmies += cardSetValue(this.cardSetsTurnedIn);
     }
 
     for (const card of cards) {
@@ -788,6 +815,17 @@ export class GameEngine {
       if (next === index) break;
     }
     return next;
+  }
+
+  // Plain +1 rotation through playersOrder, with no skip-empty check.
+  // Used during PickCountries, where every player legitimately starts
+  // with no countries.
+  private rotateToNextPlayer(): void {
+    if (this.playersOrder.length === 1) {
+      this.currentPlayerIndex = 0;
+      return;
+    }
+    this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.playersOrder.length;
   }
 
   private selectNextAlivePlayer(): void {
